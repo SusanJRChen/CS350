@@ -290,6 +290,23 @@ cmd_quit(int nargs, char **args)
 }
 
 /*
+ * Command for enabling debugging.
+ */
+static
+int
+enable_debug(int nargs, char **args) 
+{
+	(void)nargs;
+	(void)args;
+
+	
+	kprintf("enable Debugging\n");
+	dbflags = 0x10;
+
+	return 0;
+}
+
+/*
  * Command for mounting a filesystem.
  */
 
@@ -437,6 +454,7 @@ static const char *opsmenu[] = {
 	"[sync]    Sync filesystems          ",
 	"[panic]   Intentional panic         ",
 	"[q]       Quit and shut down        ",
+	"[dth] Enable debugging              ",
 	NULL
 };
 
@@ -549,6 +567,7 @@ static struct {
 	{ "q",		cmd_quit },
 	{ "exit",	cmd_quit },
 	{ "halt",	cmd_quit },
+	{ "dth",	enable_debug },
 
 #if OPT_SYNCHPROBS
 	/* in-kernel synchronization problem(s) */
