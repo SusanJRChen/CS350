@@ -16,3 +16,5 @@ sys161 kernel-ASST1
 
 cd $HOME/cs350-os161
 /u/cs350/bin/cs350_submit 0 | tee submitlog.txt
+
+ssh -Y s529chen@linux.student.cs.uwaterloo.ca

@@ -76,10 +76,12 @@ struct lock {
         char *lk_name;
         // add what you need here
         // (don't forget to mark things volatile as needed)
-};
 
-struct lock *lock_create(const char *name);
-void lock_acquire(struct lock *);
+        struct thread *owner;
+        struct spinlock spin;
+        struct wchan *wc;
+        volatile bool held;
+};
 
 /*
  * Operations:
@@ -92,6 +94,9 @@ void lock_acquire(struct lock *);
  *
  * These operations must be atomic. You get to write them.
  */
+
+struct lock *lock_create(const char *name);
+void lock_acquire(struct lock *);
 void lock_release(struct lock *);
 bool lock_do_i_hold(struct lock *);
 void lock_destroy(struct lock *);
