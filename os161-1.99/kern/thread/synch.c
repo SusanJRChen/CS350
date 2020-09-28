@@ -224,6 +224,8 @@ lock_release(struct lock *lock)
 
         lock->held = false;
         lock->owner = NULL;
+        KASSERT(!lock->held);
+
         wchan_wakeone(lock->wc);
 
         spinlock_release(&lock->spin);
