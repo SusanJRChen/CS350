@@ -11,7 +11,10 @@ bmake
 bmake install
 cd $HOME/cs350-os161/root
 cp /u/cs350/sys161/sys161.conf sys161.conf
-sys161 kernel-ASST1
+sys161 kernel-ASST1 "sy2;q"
+
+vi sys161.conf
+
 
 
 cd $HOME/cs350-os161

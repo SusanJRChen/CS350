@@ -89,7 +89,7 @@ struct lock {
  *                   same time.
  *    lock_release - Free the lock. Only the thread holding the lock may do
  *                   this.
- *    lock_do_i_hold - Return true if the current thread holds the lock; 
+ *    lock_do_i_hold - Return true if the current thread holds the lock;
  *                   false otherwise.
  *
  * These operations must be atomic. You get to write them.
@@ -119,7 +119,7 @@ void lock_destroy(struct lock *);
 struct cv {
         char *cv_name;
         // add what you need here
-        // (don't forget to mark things volatile as needed)
+        struct wchan *wc;
 };
 
 struct cv *cv_create(const char *name);
@@ -132,7 +132,7 @@ void cv_destroy(struct cv *);
  *    cv_signal    - Wake up one thread that's sleeping on this CV.
  *    cv_broadcast - Wake up all threads sleeping on this CV.
  *
- * For all three operations, the current thread must hold the lock passed 
+ * For all three operations, the current thread must hold the lock passed
  * in. Note that under normal circumstances the same lock should be used
  * on all operations with any particular CV.
  *
