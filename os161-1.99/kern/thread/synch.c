@@ -87,7 +87,7 @@ sem_destroy(struct semaphore *sem)
         kfree(sem);
 }
 
-void 
+void
 P(struct semaphore *sem)
 {
         KASSERT(sem != NULL);
@@ -175,9 +175,9 @@ lock_create(const char *name)
         lock->held = false;
         lock->wc = NULL;
         lock->owner = NULL;
-        
+
         // add stuff here as needed
-        
+
         return lock;
 }
 
@@ -185,7 +185,7 @@ void
 lock_destroy(struct lock *lock)
 {
         KASSERT(lock != NULL);
-        
+
 	spinlock_cleanup(&lock->spin);
 	wchan_destroy(lock->lk_name);
         kfree(lock->lk_name);
@@ -196,6 +196,7 @@ void
 lock_acquire(struct lock *lock)
 {
         KASSERT(lock != NULL);
+        KASSERT(!lock_do_i_hold(lock));
 
         spinlock_acquire(&lock->spin);
 
@@ -205,6 +206,7 @@ lock_acquire(struct lock *lock)
                 wchan_sleep(lock->wc);
                 spinlock_acquire(&lock->spin);
         }
+
         lock->held = true;
         lock->owner = curthread;
 
@@ -216,7 +218,7 @@ lock_release(struct lock *lock)
 {
         KASSERT(lock != NULL);
         KASSERT(lock_do_i_hold(lock));
-        
+
         spinlock_acquire(&lock->spin);
 
         lock->held = false;
@@ -253,9 +255,9 @@ cv_create(const char *name)
                 kfree(cv);
                 return NULL;
         }
-        
+
         // add stuff here as needed
-        
+
         return cv;
 }
 
@@ -265,7 +267,7 @@ cv_destroy(struct cv *cv)
         KASSERT(cv != NULL);
 
         // add stuff here as needed
-        
+
         kfree(cv->cv_name);
         kfree(cv);
 }
