@@ -187,7 +187,7 @@ lock_destroy(struct lock *lock)
         KASSERT(lock != NULL);
 
 	spinlock_cleanup(&lock->spin);
-	wchan_destroy(lock->lk_name);
+	wchan_destroy(lock->wc);
         kfree(lock->lk_name);
         kfree(lock);
 }
@@ -274,7 +274,7 @@ cv_destroy(struct cv *cv)
 {
         KASSERT(cv != NULL);
 
-	wchan_destroy(cv->cv_name);
+	wchan_destroy(cv->wc);
 
         kfree(cv->cv_name);
         kfree(cv);
@@ -298,6 +298,7 @@ cv_signal(struct cv *cv, struct lock *lock)
         KASSERT(cv != NULL);
 
         wchan_wakeone(cv->wc);
+        (void)lock;
 }
 
 void
@@ -306,4 +307,5 @@ cv_broadcast(struct cv *cv, struct lock *lock)
         KASSERT(cv != NULL);
 
         wchan_wakeall(cv->wc);
+        (void)lock;
 }
