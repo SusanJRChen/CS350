@@ -163,7 +163,18 @@ lock_create(const char *name)
                 return NULL;
         }
 
-        // add stuff here as needed
+	lock->wc = wchan_create(lock->lk_name);
+	if (lock->wc == NULL) {
+		kfree(lock->lk_name);
+		kfree(lock);
+		return NULL;
+	}
+
+	spinlock_init(&lock->spin);
+
+        lock->held = false;
+        lock->wc = NULL;
+        lock->owner = NULL;
 
         return lock;
 }
