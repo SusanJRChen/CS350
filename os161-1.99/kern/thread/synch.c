@@ -209,9 +209,11 @@ lock_release(struct lock *lock)
 bool
 lock_do_i_hold(struct lock *lock)
 {
-        KASSERT(lock != NULL);
-        if (lock->owner == curthread) return true;
-        return false;
+        // Write this
+
+        (void)lock;  // suppress warning until code gets written
+
+        return true; // dummy until code gets written
 }
 
 ////////////////////////////////////////////////////////////
