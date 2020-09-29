@@ -209,9 +209,9 @@ lock_release(struct lock *lock)
 bool
 lock_do_i_hold(struct lock *lock)
 {
-        // if (lock == NULL) return false;
+        if (lock == NULL) return false;
         // return lock->owner == curthread;
-        void(lock);
+        // void(lock);
         return true;
 }
 
