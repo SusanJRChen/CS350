@@ -173,7 +173,6 @@ lock_create(const char *name)
         spinlock_init(&lock->spin);
 
         lock->held = false;
-        lock->wc = NULL;
         lock->owner = NULL;
 
         return lock;
