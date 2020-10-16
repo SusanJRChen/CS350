@@ -4,17 +4,17 @@
 #include <synch.h>
 #include <opt-A1.h>
 
-/* 
+/*
  * This simple default synchronization mechanism allows only vehicle at a time
  * into the intersection.   The intersectionSem is used as a a lock.
  * We use a semaphore rather than a lock so that this code will work even
  * before locks are implemented.
  */
 
-/* 
+/*
  * Replace this default synchronization mechanism with your own (better) mechanism
  * needed for your solution.   Your mechanism may use any of the available synchronzation
- * primitives, e.g., semaphores, locks, condition variables.   You are also free to 
+ * primitives, e.g., semaphores, locks, condition variables.   You are also free to
  * declare other global variables if your solution requires them.
  */
 
@@ -24,17 +24,18 @@
 static struct semaphore *intersectionSem;
 
 
-/* 
+/*
  * The simulation driver will call this function once before starting
  * the simulation
  *
  * You can use it to initialize synchronization and other variables.
- * 
+ *
  */
 void
 intersection_sync_init(void)
 {
   /* replace this default implementation with your own implementation */
+
 
   intersectionSem = sem_create("intersectionSem",1);
   if (intersectionSem == NULL) {
@@ -43,7 +44,7 @@ intersection_sync_init(void)
   return;
 }
 
-/* 
+/*
  * The simulation driver will call this function once after
  * the simulation has finished
  *
@@ -62,7 +63,7 @@ intersection_sync_cleanup(void)
 /*
  * The simulation driver will call this function each time a vehicle
  * tries to enter the intersection, before it enters.
- * This function should cause the calling simulation thread 
+ * This function should cause the calling simulation thread
  * to block until it is OK for the vehicle to enter the intersection.
  *
  * parameters:
@@ -73,7 +74,7 @@ intersection_sync_cleanup(void)
  */
 
 void
-intersection_before_entry(Direction origin, Direction destination) 
+intersection_before_entry(Direction origin, Direction destination)
 {
   /* replace this default implementation with your own implementation */
   (void)origin;  /* avoid compiler complaint about unused parameter */
@@ -95,7 +96,7 @@ intersection_before_entry(Direction origin, Direction destination)
  */
 
 void
-intersection_after_exit(Direction origin, Direction destination) 
+intersection_after_exit(Direction origin, Direction destination)
 {
   /* replace this default implementation with your own implementation */
   (void)origin;  /* avoid compiler complaint about unused parameter */
