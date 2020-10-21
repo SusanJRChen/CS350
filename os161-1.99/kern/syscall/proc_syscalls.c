@@ -24,8 +24,8 @@ int sys_fork(struct trapframe * tf, pid_t * retval) {
   }
 
   // Create and copy the address space (and data) from the parent to the child.
-  struct addspace * new_as;
-  as_copy(curproc_getas(), &new_as));
+  struct addrspace * new_as;
+  as_copy(curproc_getas(), &new_as);
   if (new_as == NULL) {
     // as_copy failed, not enough memory
     return ENOMEM;
@@ -37,14 +37,17 @@ int sys_fork(struct trapframe * tf, pid_t * retval) {
 	spinlock_release(&new_proc->p_lock);
 
   // Assign a PID to the child process and create the parent/child relationship.
-  new_proc->p_pid = abs(int(&new_as));
+  // new_proc->p_pid = abs(int(&new_as));
   new_proc->p_parent = curproc;
   array_add(curproc->p_children, new_proc, NULL);
 
   // Create a thread for a child process. The OS needs a safe way to pass the trapframe to the child thread.
-  struct trapframe * new_tf;
-  memcpy(&new_tf, &tf, sizeof(struct trapframe));
-  KASSERT(new_tf != NULL);
+  struct trapframe * new_tf = kmalloc(sizeof(struct trapframe));
+  if (new_tf == NULL) {
+    // malloc failed, not enough memory
+    return ENOMEM;
+  }
+  memcpy(new_tf, tf, sizeof(struct trapframe));
   thread_fork(curproc->p_name, new_proc, enter_forked_process, new_tf, 1);
 
   // Set the return value to new process pid
