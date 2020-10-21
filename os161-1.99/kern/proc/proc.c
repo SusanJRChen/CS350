@@ -112,10 +112,10 @@ proc_create(const char *name)
 	GLOBAL_PID += 1;
 	lock_release(GLOBAL_PID_LOCK);
 
-	proc->parent = NULL;
-	proc->children = array_create();
-	proc->p_cv = cv_create(proc->p_name + " cv");
-	proc->p_children_lk = lock_create(proc->p_name + " children lock");
+	proc->p_parent = NULL;
+	proc->p_children = array_create();
+	proc->p_cv = cv_create(proc->p_name);
+	proc->p_children_lk = lock_create(proc->p_name);
 	proc->p_has_exited = false;
 	proc->p_exit_code = 0;
 #endif
