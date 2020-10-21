@@ -74,7 +74,7 @@ void sys__exit(int exitcode) {
     // find the curproc in the parent proc and set exit code
     if (curproc->p_parent != NULL) {
       lock_acquire(curproc->p_parent->p_children_lk);
-      for (int i = 0; i < array_num(curproc->p_parent->p_children); i++) {
+      for (int i = 0; i < int(array_num(curproc->p_parent->p_children)); i++) {
         struct proc *cur = array_get(curproc->p_parent->p_children, i);
         if (cur->p_pid == curproc->p_pid) {
           cur->p_exit_code = exitcode;
@@ -84,7 +84,7 @@ void sys__exit(int exitcode) {
       lock_release(curproc->p_parent->p_children_lk);
 
       // if a parent is waiting on child to exit, wake them up
-      cv_broadcast(curproc->p_cv, curproc->p_children_lk));
+      cv_broadcast(curproc->p_cv, curproc->p_children_lk);
     }
     // destroy proc if there's no parent
     else {
@@ -159,7 +159,7 @@ sys_getpid(pid_t *retval)
   /* for now, this is just a stub that always returns a PID of 1 */
   /* you need to fix this to make it work properly */
   #if OPT_A2
-    *retval = curproc->pid;
+    *retval = curproc->p_pid;
     // code you created or modified for ASST2 goes here
   #else
     *retval = 1;
@@ -191,12 +191,12 @@ sys_waitpid(pid_t pid,
      Fix this!
   */
   #if OPT_A2
-    for (int i = 0; i < array_num(curproc->p_children); i++) {
+    for (int i = 0; i < int(array_num(curproc->p_children)); i++) {
       struct proc * cur = array_get(curproc->p_children, i);
       if (cur->p_pid == pid) {
         lock_acquire(cur->p_children_lk);
         while(!cur->p_has_exited) {
-          cv_wait(cur->p_cv, cur->p_children_lk)
+          cv_wait(cur->p_cv, cur->p_children_lk);
         }
         exitstatus = _MKWAIT_EXIT(cur->p_exit_code);
         lock_release(cur->p_children_lk);
