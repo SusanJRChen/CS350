@@ -20,7 +20,7 @@
 
 
 
-SUBMIT="1" # Modify this for different assignments
+SUBMIT="2" # Modify this for different assignments
 
 export PATH; PATH=`/bin/showpath /u/cs350/sys161/bin /u/cs350/bin standard`
 
@@ -30,7 +30,7 @@ export CS350=$PWD
 export ROOT=$CS350/root
 export PROJ=$CS350/os161-1.99
 
-ASSIGNMENT="ASST2a" # 2a -> ASST2, 3 -> ASST3
+ASSIGNMENT="ASST${SUBMIT:0:1}" # 2a -> ASST2, 3 -> ASST3
 
 echo "Setting up CS350 for Assignment $SUBMIT"
 
