@@ -30,7 +30,7 @@ export CS350=$PWD
 export ROOT=$CS350/root
 export PROJ=$CS350/os161-1.99
 
-ASSIGNMENT="ASST${SUBMIT:0:1}" # 2a -> ASST2, 3 -> ASST3
+ASSIGNMENT="ASST2a" # 2a -> ASST2, 3 -> ASST3
 
 echo "Setting up CS350 for Assignment $SUBMIT"
 
