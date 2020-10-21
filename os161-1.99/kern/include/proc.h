@@ -55,8 +55,9 @@ struct proc {
 	struct proc * p_parent;
 	struct array * p_children;
 	struct cv * p_cv;
-	struct lock * p_children_lock;
-	bool has_exited;
+	struct lock * p_children_lk;
+	bool p_has_exited;
+	int p_exit_code;
 
 	#else
 	#endif /* OPT_A2 */

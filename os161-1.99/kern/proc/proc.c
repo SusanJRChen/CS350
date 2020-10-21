@@ -115,8 +115,9 @@ proc_create(const char *name)
 	proc->parent = NULL;
 	proc->children = array_create();
 	proc->p_cv = cv_create(proc->p_name + " cv");
-	proc->p_children_lock = lock_create(proc->p_name + " children lock");
-	proc->has_exited = false;
+	proc->p_children_lk = lock_create(proc->p_name + " children lock");
+	proc->p_has_exited = false;
+	proc->p_exit_code = 0;
 #endif
 
 	return proc;

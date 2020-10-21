@@ -57,37 +57,94 @@ int sys_fork(struct trapframe * tf, pid_t * retval) {
 
 void sys__exit(int exitcode) {
 
-  struct addrspace *as;
-  struct proc *p = curproc;
-  /* for now, just include this to keep the compiler from complaining about
-     an unused variable */
-  (void)exitcode;
+  #if OPT_A2
+    struct addrspace *as;
+    struct proc *p = curproc;
+    /* for now, just include this to keep the compiler from complaining about
+      an unused variable */
 
-  DEBUG(DB_SYSCALL,"Syscall: _exit(%d)\n",exitcode);
+    // set curproc to exited
+    // if a parent is waiting on child to exit, wake them up
+    curproc->p_has_exited = true;
 
-  KASSERT(curproc->p_addrspace != NULL);
-  as_deactivate();
-  /*
-   * clear p_addrspace before calling as_destroy. Otherwise if
-   * as_destroy sleeps (which is quite possible) when we
-   * come back we'll be calling as_activate on a
-   * half-destroyed address space. This tends to be
-   * messily fatal.
-   */
-  as = curproc_setas(NULL);
-  as_destroy(as);
+    // find the curproc in the parent proc and set exit code
+    if (curproc->p_parent != NULL) {
+      lock_acquire(curproc->parent->p_children_lk);
 
-  /* detach this thread from its process */
-  /* note: curproc cannot be used after this call */
-  proc_remthread(curthread);
+      for (int i = 0; i < array_num(curproc->p_parent->children); i++) {
+        struct proc *cur = array_get(curproc->p_parent->children, i);
+        if (cur->p_pid == curproc->p_pid) {
+          cur->p_exitcode = exitcode;
+          break;
+        }
+      }
 
-  /* if this is the last user process in the system, proc_destroy()
-     will wake up the kernel menu thread */
-  proc_destroy(p);
+      lock_release(curproc->parent->p_children_lk);
+      cv_broadcast(curproc->p_cv, curproc->p_children_lk));
+    }
+    // destroy proc if there's no parent
+    else {
+      proc_destroy(curproc);
+    }
 
-  thread_exit();
-  /* thread_exit() does not return, so we should never get here */
-  panic("return from thread_exit in sys_exit\n");
+    DEBUG(DB_SYSCALL,"Syscall: _exit(%d)\n",exitcode);
+
+    KASSERT(curproc->p_addrspace != NULL);
+    as_deactivate();
+    /*
+    * clear p_addrspace before calling as_destroy. Otherwise if
+    * as_destroy sleeps (which is quite possible) when we
+    * come back we'll be calling as_activate on a
+    * half-destroyed address space. This tends to be
+    * messily fatal.
+    */
+    as = curproc_setas(NULL);
+    as_destroy(as);
+
+    /* detach this thread from its process */
+    /* note: curproc cannot be used after this call */
+    proc_remthread(curthread);
+
+    /* if this is the last user process in the system, proc_destroy()
+      will wake up the kernel menu thread */
+    proc_destroy(p);
+
+    thread_exit();
+    /* thread_exit() does not return, so we should never get here */
+    panic("return from thread_exit in sys_exit\n");
+  #else
+    struct addrspace *as;
+    struct proc *p = curproc;
+    /* for now, just include this to keep the compiler from complaining about
+      an unused variable */
+    (void)exitcode;
+
+    DEBUG(DB_SYSCALL,"Syscall: _exit(%d)\n",exitcode);
+
+    KASSERT(curproc->p_addrspace != NULL);
+    as_deactivate();
+    /*
+    * clear p_addrspace before calling as_destroy. Otherwise if
+    * as_destroy sleeps (which is quite possible) when we
+    * come back we'll be calling as_activate on a
+    * half-destroyed address space. This tends to be
+    * messily fatal.
+    */
+    as = curproc_setas(NULL);
+    as_destroy(as);
+
+    /* detach this thread from its process */
+    /* note: curproc cannot be used after this call */
+    proc_remthread(curthread);
+
+    /* if this is the last user process in the system, proc_destroy()
+      will wake up the kernel menu thread */
+    proc_destroy(p);
+
+    thread_exit();
+    /* thread_exit() does not return, so we should never get here */
+    panic("return from thread_exit in sys_exit\n");
+  #endif /* OPT_A2 */
 }
 
 
@@ -130,11 +187,12 @@ sys_waitpid(pid_t pid,
     for (int i = 0; i < array_num(curproc->p_children); i++) {
       struct proc * cur = array_get(curproc->p_children, i);
       if (cur->p_pid == pid) {
-        lock_acquire(cur->p_lock);
+        lock_acquire(cur->p_children_lk);
         while(!cur->p_has_exited) {
-          cv_wait(cur->p_cv, cur->p_lock)
+          cv_wait(cur->p_cv, cur->p_children_lk)
         }
-        lock_release(cur->p_lock);
+        exitstatus = _MKWAIT_EXIT(cur->p_exit_code);
+        lock_release(cur->p_children_lk);
       }
       else if (i == array_num(cur->p_children) - 1) {
         // no children with pid exist
@@ -142,6 +200,12 @@ sys_waitpid(pid_t pid,
         return ECHILD;
       }
     }
+
+    result = copyout((void *)&exitstatus,status,sizeof(int));
+    if (result) {
+      return(result);
+    }
+    *retval = pid;
     // code you created or modified for ASST2 goes here
   #else
     if (options != 0) {
