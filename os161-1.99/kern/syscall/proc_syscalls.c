@@ -50,7 +50,7 @@ int sys_fork(struct trapframe * tf, pid_t * retval) {
     return ENOMEM;
   }
   memcpy(new_tf, tf, sizeof(struct trapframe));
-  thread_fork(new_proc->p_name, new_proc, enter_forked_process, new_tf, 1);
+  thread_fork(new_proc->p_name, (struct * proc) &new_proc, (void *) &enter_forked_process, new_tf, 1);
 
   // Set the return value to new process pid
   *retval = new_proc->p_pid;
@@ -74,7 +74,7 @@ void sys__exit(int exitcode) {
     // find the curproc in the parent proc and set exit code
     if (curproc->p_parent != NULL) {
       lock_acquire(curproc->p_parent->p_children_lk);
-      for (int i = 0; i < int(array_num(curproc->p_parent->p_children)); i++) {
+      for (unsigned int i = 0; i < array_num(curproc->p_parent->p_children); i++) {
         struct proc *cur = array_get(curproc->p_parent->p_children, i);
         if (cur->p_pid == curproc->p_pid) {
           cur->p_exit_code = exitcode;
@@ -191,7 +191,7 @@ sys_waitpid(pid_t pid,
      Fix this!
   */
   #if OPT_A2
-    for (int i = 0; i < int(array_num(curproc->p_children)); i++) {
+    for (unsigned int i = 0; i < array_num(curproc->p_children); i++) {
       struct proc * cur = array_get(curproc->p_children, i);
       if (cur->p_pid == pid) {
         lock_acquire(cur->p_children_lk);
