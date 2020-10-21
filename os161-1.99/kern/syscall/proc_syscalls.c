@@ -173,6 +173,9 @@ sys_waitpid(pid_t pid,
 {
   int exitstatus;
   int result;
+  if (options != 0) {
+    return(EINVAL);
+  }
 
   /* this is just a stub implementation that always reports an
      exit status of 0, regardless of the actual exit status of
@@ -207,9 +210,6 @@ sys_waitpid(pid_t pid,
     *retval = pid;
     // code you created or modified for ASST2 goes here
   #else
-    if (options != 0) {
-      return(EINVAL);
-    }
     /* for now, just pretend the exitstatus is 0 */
     exitstatus = 0;
     result = copyout((void *)&exitstatus,status,sizeof(int));
