@@ -197,10 +197,10 @@ enter_forked_process(struct trapframe *tf, unsigned long i)
 	tf_c.tf_a3 = 0;
 
 	// increment pc
-	newtf.tf_epc += 4;
+	tf.tf_epc += 4;
 
 	// return to usermode
-	mips_usermode(&tf_c)
+	mips_usermode(&tf_c);
 
 	(void)i;
 }
