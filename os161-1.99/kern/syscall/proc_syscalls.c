@@ -50,7 +50,7 @@ int sys_fork(struct trapframe * tf, pid_t * retval) {
     return ENOMEM;
   }
   memcpy(new_tf, tf, sizeof(struct trapframe));
-  thread_fork(new_proc->p_name, (struct * proc) &new_proc, (void *) &enter_forked_process, new_tf, 1);
+  thread_fork(new_proc->p_name, (struct proc *) &new_proc, (void *) &enter_forked_process, (struct trapframe *) &new_tf, 1);
 
   // Set the return value to new process pid
   *retval = new_proc->p_pid;
