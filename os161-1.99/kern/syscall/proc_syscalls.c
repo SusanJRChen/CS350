@@ -9,6 +9,8 @@
 #include <thread.h>
 #include <addrspace.h>
 #include <copyinout.h>
+#include <mips/trapframe.h>
+#include <synch.h>
 #include "opt-A2.h"
 
   /* this implementation of sys__exit does not do anything with the exit code */
@@ -48,7 +50,7 @@ int sys_fork(struct trapframe * tf, pid_t * retval) {
     return ENOMEM;
   }
   memcpy(new_tf, tf, sizeof(struct trapframe));
-  thread_fork(curproc->p_name, new_proc, enter_forked_process, new_tf, 1);
+  thread_fork(new_proc->p_name, new_proc, enter_forked_process, new_tf, 1);
 
   // Set the return value to new process pid
   *retval = new_proc->p_pid;
@@ -75,7 +77,7 @@ void sys__exit(int exitcode) {
       for (int i = 0; i < array_num(curproc->p_parent->p_children); i++) {
         struct proc *cur = array_get(curproc->p_parent->p_children, i);
         if (cur->p_pid == curproc->p_pid) {
-          cur->p_exitcode = exitcode;
+          cur->p_exit_code = exitcode;
           break;
         }
       }
