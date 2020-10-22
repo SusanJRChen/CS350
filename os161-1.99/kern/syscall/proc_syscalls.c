@@ -189,8 +189,8 @@ sys_waitpid(pid_t pid,
   */
   #if OPT_A2
   struct proc* parent = cur_proc;
-    for (unsigned int i = 0; i < array_num(curproc->p_children); i++) {
-      struct proc * cur = array_get(curproc->p_children, i);
+    for (unsigned int i = 0; i < array_num(parent->p_children); i++) {
+      struct proc * cur = array_get(parent->p_children, i);
       if (cur->p_pid == pid) {
         lock_acquire(cur->p_children_lk);
         while(!cur->p_has_exited) {
@@ -199,7 +199,7 @@ sys_waitpid(pid_t pid,
         exitstatus = _MKWAIT_EXIT(cur->p_exit_code);
         lock_release(cur->p_children_lk);
       }
-      else if (i == array_num(curproc->p_children) - 1) {
+      else if (i == array_num(parent->p_children) - 1) {
         // no children with pid exist
         *retval = -1;
         return ECHILD;
