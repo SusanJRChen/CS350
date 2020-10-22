@@ -99,8 +99,7 @@ syscall(struct trapframe *tf)
 
 	retval = 0;
 
-  kprintf("CALL NO!!!!");
-  kprintf(callno);
+  kprintf("CALL NO %d!!!!", callno);
 	switch (callno) {
 	    case SYS_reboot:
 		err = sys_reboot(tf->tf_a0);
