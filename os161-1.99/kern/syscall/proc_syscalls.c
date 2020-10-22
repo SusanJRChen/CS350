@@ -71,22 +71,23 @@ void sys__exit(int exitcode) {
       an unused variable */
 
     // set curproc to exited
-    curproc->p_has_exited = true;
+    p->p_has_exited = true;
 
     // find the curproc in the parent proc and set exit code
-    if (curproc->p_parent != NULL) {
-      lock_acquire(curproc->p_parent->p_children_lk);
-      for (unsigned int i = 0; i < array_num(curproc->p_parent->p_children); i++) {
-        struct proc *cur = array_get(curproc->p_parent->p_children, i);
-        if (cur->p_pid == curproc->p_pid) {
+    if (p->p_parent != NULL) {
+      struct proc * parent = p->p_parent;
+      lock_acquire(parent->p_children_lk);
+      for (unsigned int i = 0; i < array_num(parent->p_children); i++) {
+        struct proc *cur = array_get(parent->p_children, i);
+        if (cur->p_pid == p->p_pid) {
           cur->p_exit_code = _MKWAIT_EXIT(exitcode);
           break;
         }
       }
-      lock_release(curproc->p_parent->p_children_lk);
+      lock_release(parent->p_children_lk);
 
       // if a parent is waiting on child to exit, wake them up
-      cv_broadcast(curproc->p_cv, curproc->p_children_lk);
+      cv_broadcast(p->p_cv, p->p_children_lk);
     }
 
     DEBUG(DB_SYSCALL,"Syscall: _exit(%d)\n",exitcode);
