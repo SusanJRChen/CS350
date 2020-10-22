@@ -108,14 +108,14 @@ proc_create(const char *name)
 #endif // UW
 #if OPT_A2
 	// handle before lock was created
-	if (GLOBAL_PID_LOCK) {
+	if (GLOBAL_PID_LOCK != NULL) {
 		lock_acquire(GLOBAL_PID_LOCK);
 		proc->p_pid = GLOBAL_PID;
 		GLOBAL_PID += 1;
 		lock_release(GLOBAL_PID_LOCK);
 	}
 	else {
-		proc->p_pid = 1;
+		proc->p_pid = GLOBAL_PID;
 		GLOBAL_PID += 1;
 	}
 	// initiate other variables
