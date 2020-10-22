@@ -250,9 +250,10 @@ proc_create_runprogram(const char *name)
 	struct proc *proc;
 	char *console_path;
 
-  kprintf("new pROCS2!!!!");
 	proc = proc_create(name);
+  kprintf("new pROCS2!!!!");
 	if (proc == NULL) {
+  kprintf("new NULL!!!!");
 		return NULL;
 	}
 
