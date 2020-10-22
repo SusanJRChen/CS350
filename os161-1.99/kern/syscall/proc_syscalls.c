@@ -40,7 +40,6 @@ int sys_fork(struct trapframe * tf, pid_t * retval) {
 	spinlock_release(&new_proc->p_lock);
 
   // Assign a PID to the child process and create the parent/child relationship.
-  // new_proc->p_pid = abs(int(&new_as));
   new_proc->p_parent = curproc;
   array_add(curproc->p_children, new_proc, NULL);
 
