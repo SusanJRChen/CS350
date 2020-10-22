@@ -191,12 +191,12 @@ proc_destroy(struct proc *proc)
 	spinlock_cleanup(&proc->p_lock);
 
 #if OPT_A2
+kprintf("DELTED!!")
 	// set children's parent to null
 	lock_acquire(proc->p_children_lk);
 	for (unsigned int i = array_num(proc->p_children); i > 0; i--) {
 		struct proc * cur = array_get(proc->p_children, i-1);
 		cur->p_parent = NULL;
-		kfree(cur);
 		array_remove(proc->p_children, i-1);
 	}
 	// destroy or free variables
