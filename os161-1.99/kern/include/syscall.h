@@ -30,6 +30,8 @@
 #ifndef _SYSCALL_H_
 #define _SYSCALL_H_
 
+#include "opt-A2.h"
+
 struct trapframe; /* from <machine/trapframe.h> */
 
 /*
@@ -41,7 +43,6 @@ void syscall(struct trapframe *tf);
 /*
  * Support functions.
  */
-
 /* Helper for fork(). You write this. */
 void enter_forked_process(struct trapframe *tf);
 
