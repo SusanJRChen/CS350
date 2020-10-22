@@ -193,6 +193,7 @@ sys_waitpid(pid_t pid,
   #if OPT_A2
     for (unsigned int i = 0; i < array_num(curproc->p_children); i++) {
       struct proc * cur = array_get(curproc->p_children, i);
+      kprintf("c %d %d", cur->p_pid, pid);
       if (cur->p_pid == pid) {
         lock_acquire(cur->p_children_lk);
         while(!cur->p_has_exited) {
