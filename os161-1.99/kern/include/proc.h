@@ -57,7 +57,8 @@ struct proc {
 	struct array * p_children;
 	struct cv * p_cv;
 	struct lock * p_children_lk;
-	bool p_has_exited;
+	bool p_has_exited_began;
+	bool p_has_exited_end;
 	int p_exit_code;
 
 	#else

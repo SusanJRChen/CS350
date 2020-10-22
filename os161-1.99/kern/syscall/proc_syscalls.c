@@ -71,7 +71,7 @@ void sys__exit(int exitcode) {
       an unused variable */
 
     // set curproc to exited
-    p->p_has_exited = true;
+    p->p_has_exited_began = true;
 
     // find the curproc in the parent proc and set exit code
     if (p->p_parent != NULL) {
@@ -79,7 +79,8 @@ void sys__exit(int exitcode) {
       lock_acquire(parent->p_children_lk);
       for (unsigned int i = 0; i < array_num(parent->p_children); i++) {
         struct proc *cur = array_get(parent->p_children, i);
-        if (cur->p_pid == p->p_pid) {
+        if (!cur->p_has_exited_end && cur->p_pid == p->p_pid) {
+          cur->p_has_exited_end = true;
           cur->p_exit_code = _MKWAIT_EXIT(exitcode);
           break;
         }
@@ -207,7 +208,7 @@ sys_waitpid(pid_t pid,
     }
 
     lock_acquire(found_proc->p_children_lk);
-    while(!found_proc->p_has_exited) {
+    while(!found_proc->p_has_exited_began) {
       cv_wait(found_proc->p_cv, found_proc->p_children_lk);
     }
     exitstatus = _MKWAIT_EXIT(found_proc->p_exit_code);

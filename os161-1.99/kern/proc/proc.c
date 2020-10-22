@@ -124,7 +124,8 @@ proc_create(const char *name)
 	array_init(proc->p_children);
 	proc->p_cv = cv_create(proc->p_name);
 	proc->p_children_lk = lock_create(proc->p_name);
-	proc->p_has_exited = false;
+	proc->p_has_exited_began = false;
+	proc->p_has_exited_end = false;
 	proc->p_exit_code = 0;
 #endif
 
