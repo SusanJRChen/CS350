@@ -19,7 +19,6 @@
 #if OPT_A2
 int sys_fork(struct trapframe * tf, pid_t * retval) {
   // Create a new process structure for the child process.
-  kprintf("forked!!");
   struct proc * new_proc = proc_create_runprogram(curproc->p_name);
   if (new_proc == NULL) {
     // proc_create_runprogram failed, probably not enough memory
@@ -56,7 +55,6 @@ int sys_fork(struct trapframe * tf, pid_t * retval) {
 
   // Set the return value to new process pid
   *retval = new_proc->p_pid;
-  kprintf("forked finished!!");
 
   return 0;
 }

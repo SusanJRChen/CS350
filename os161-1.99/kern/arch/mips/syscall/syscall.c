@@ -117,7 +117,7 @@ syscall(struct trapframe *tf)
 	  break;
 	#if OPT_A2
 	case SYS_fork:
-		sys_fork(tf, (pid_t *)& retval);
+		err = sys_fork(tf, (pid_t *)& retval);
 		break;
 		// code you created or modified for ASST2 goes here
 	#else
