@@ -71,8 +71,8 @@ struct semaphore *no_proc_sem;
 #endif  // UW
 
 #if OPT_A2
-struct lock *GLOBAL_PID_LOCK;
-int GLOBAL_PID;
+static struct lock *GLOBAL_PID_LOCK;
+static volatile pid_t GLOBAL_PID;
 #endif
 
 /*
@@ -108,7 +108,7 @@ proc_create(const char *name)
 #endif // UW
 #if OPT_A2
 	// handle before lock was created
-	if (GLOBAL_PID_LOCK != NULL) {
+	if (GLOBAL_PID_LOCK) {
 		lock_acquire(GLOBAL_PID_LOCK);
 		proc->p_pid = GLOBAL_PID;
 		GLOBAL_PID += 1;
@@ -116,6 +116,7 @@ proc_create(const char *name)
 	}
 	else {
 		proc->p_pid = 1;
+		GLOBAL_PID += 1;
 	}
 	// initiate other variables
 	proc->p_parent = NULL;
@@ -234,10 +235,6 @@ proc_destroy(struct proc *proc)
 void
 proc_bootstrap(void)
 {
-	#if OPT_A2
-		GLOBAL_PID_LOCK = lock_create("Global PID lock");
-		GLOBAL_PID = 2;
-	#endif
   kproc = proc_create("[kernel]");
   if (kproc == NULL) {
     panic("proc_create for kproc failed\n");
@@ -253,6 +250,10 @@ proc_bootstrap(void)
     panic("could not create no_proc_sem semaphore\n");
   }
 #endif // UW
+#if OPT_A2
+	GLOBAL_PID_LOCK = lock_create("Global PID lock");
+	GLOBAL_PID = 1;
+#endif
 }
 
 /*
