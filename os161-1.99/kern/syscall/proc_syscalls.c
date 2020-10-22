@@ -18,13 +18,13 @@
 
 #if OPT_A2
 int sys_fork(struct trapframe * tf, pid_t * retval) {
+  kprintf("forkED!!!!");
   // Create a new process structure for the child process.
   struct proc * new_proc = proc_create_runprogram(curproc->p_name);
   if (new_proc == NULL) {
     // proc_create_runprogram failed, probably not enough memory
     return ENOMEM;
   }
-  kprintf("forkED!!!!");
 
   // Create and copy the address space (and data) from the parent to the child.
   struct addrspace * new_as;
