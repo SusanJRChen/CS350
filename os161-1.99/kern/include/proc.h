@@ -38,6 +38,7 @@
 
 #include <spinlock.h>
 #include <thread.h> /* required for struct threadarray */
+#include <synch.h> /* required for struct threadarray */
 #include "opt-A2.h"
 
 struct addrspace;
