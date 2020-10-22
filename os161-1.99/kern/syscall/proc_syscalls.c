@@ -56,10 +56,10 @@ int sys_fork(struct trapframe * tf, pid_t * retval) {
 
   // Set the return value to new process pid
   *retval = new_proc->p_pid;
+  kprintf("forked finished!!");
 
   return 0;
 }
-  kprintf("forked finished!!");
 #else
 #endif /* OPT_A2 */
 
