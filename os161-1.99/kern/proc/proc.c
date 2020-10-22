@@ -118,7 +118,6 @@ proc_create(const char *name)
 		proc->p_pid = GLOBAL_PID;
 		GLOBAL_PID += 1;
 	}
-	kprintf("%d",proc->p_pid);
 	// initiate other variables
 	proc->p_parent = NULL;
 	proc->p_children = array_create();

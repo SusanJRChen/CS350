@@ -190,23 +190,28 @@ sys_waitpid(pid_t pid,
      Fix this!
   */
   #if OPT_A2
-  struct proc* parent = curproc;
+    struct proc* parent = curproc;
+    struct proc * found_proc = NULL;
     for (unsigned int i = 0; i < array_num(parent->p_children); i++) {
       struct proc * cur = array_get(parent->p_children, i);
+      kprintf("%d", i);
       if (cur->p_pid == pid) {
-        lock_acquire(cur->p_children_lk);
-        while(!cur->p_has_exited) {
-          cv_wait(cur->p_cv, cur->p_children_lk);
-        }
-        exitstatus = _MKWAIT_EXIT(cur->p_exit_code);
-        lock_release(cur->p_children_lk);
-      }
-      else if (i == array_num(parent->p_children) - 1) {
-        // no children with pid exist
-        *retval = -1;
-        return ECHILD;
+        found_proc = cur;
       }
     }
+
+    // no children with pid exist
+    if (found_proc == NULL) {
+        *retval = -1;
+        return ECHILD;
+    }
+
+    lock_acquire(found_proc->p_children_lk);
+    while(!found_proc->p_has_exited) {
+      cv_wait(found_proc->p_cv, found_proc->p_children_lk);
+    }
+    exitstatus = _MKWAIT_EXIT(found_proc->p_exit_code);
+    lock_release(found_proc->p_children_lk);
 
     result = copyout((void *)&exitstatus,status,sizeof(int));
     if (result) {
