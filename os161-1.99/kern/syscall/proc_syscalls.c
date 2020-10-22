@@ -188,6 +188,7 @@ sys_waitpid(pid_t pid,
      Fix this!
   */
   #if OPT_A2
+  struct proc* parent = cur_proc;
     for (unsigned int i = 0; i < array_num(curproc->p_children); i++) {
       struct proc * cur = array_get(curproc->p_children, i);
       if (cur->p_pid == pid) {
