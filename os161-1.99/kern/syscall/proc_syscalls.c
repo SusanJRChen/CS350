@@ -24,6 +24,7 @@ int sys_fork(struct trapframe * tf, pid_t * retval) {
     // proc_create_runprogram failed, probably not enough memory
     return ENOMEM;
   }
+  kprintf("forkED!!!!");
 
   // Create and copy the address space (and data) from the parent to the child.
   struct addrspace * new_as;
@@ -63,6 +64,7 @@ int sys_fork(struct trapframe * tf, pid_t * retval) {
 void sys__exit(int exitcode) {
 
   #if OPT_A2
+  kprintf("EXITEd!!!!");
     struct addrspace *as;
     struct proc *p = curproc;
     /* for now, just include this to keep the compiler from complaining about
@@ -191,6 +193,7 @@ sys_waitpid(pid_t pid,
      Fix this!
   */
   #if OPT_A2
+  kprintf("WAITED!!!!");
     for (unsigned int i = 0; i < array_num(curproc->p_children); i++) {
       struct proc * cur = array_get(curproc->p_children, i);
       if (cur->p_pid == pid) {

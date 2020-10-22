@@ -85,9 +85,6 @@ proc_create(const char *name)
 	struct proc *proc;
 
 	proc = kmalloc(sizeof(*proc));
-#if OPT_A2
-	KASSERT(proc!= NULL);
-#endif
 	if (proc == NULL) {
 		return NULL;
 	}
@@ -110,6 +107,7 @@ proc_create(const char *name)
 	proc->console = NULL;
 #endif // UW
 #if OPT_A2
+	// handle before lock was created
 	if (GLOBAL_PID_LOCK) {
 		lock_acquire(GLOBAL_PID_LOCK);
 		proc->p_pid = GLOBAL_PID;
@@ -120,7 +118,7 @@ proc_create(const char *name)
 		proc->p_pid = GLOBAL_PID;
 		GLOBAL_PID += 1;
 	}
-
+	// initiate other variables
 	proc->p_parent = NULL;
 	proc->p_children = array_create();
 	proc->p_cv = cv_create(proc->p_name);
@@ -252,6 +250,7 @@ proc_create_runprogram(const char *name)
 	struct proc *proc;
 	char *console_path;
 
+  kprintf("new pROCS2!!!!");
 	proc = proc_create(name);
 	if (proc == NULL) {
 		return NULL;
