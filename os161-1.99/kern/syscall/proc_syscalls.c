@@ -64,7 +64,6 @@ int sys_fork(struct trapframe * tf, pid_t * retval) {
 void sys__exit(int exitcode) {
 
   #if OPT_A2
-  kprintf("EXITEd!!!!");
     struct addrspace *as;
     struct proc *p = curproc;
     /* for now, just include this to keep the compiler from complaining about
@@ -75,11 +74,12 @@ void sys__exit(int exitcode) {
 
     // find the curproc in the parent proc and set exit code
     if (curproc->p_parent != NULL) {
+      kprintf("CURPROC has parent\n");
       lock_acquire(curproc->p_parent->p_children_lk);
       for (unsigned int i = 0; i < array_num(curproc->p_parent->p_children); i++) {
         struct proc *cur = array_get(curproc->p_parent->p_children, i);
         if (cur->p_pid == curproc->p_pid) {
-          cur->p_exit_code = exitcode;
+          cur->p_exit_code = _MKWAIT_EXIT(exitcode);
           break;
         }
       }
@@ -88,10 +88,7 @@ void sys__exit(int exitcode) {
       // if a parent is waiting on child to exit, wake them up
       cv_broadcast(curproc->p_cv, curproc->p_children_lk);
     }
-    // destroy proc if there's no parent
-    else {
-      proc_destroy(curproc);
-    }
+      kprintf("CURPROC coninuted to exit \n");
 
     DEBUG(DB_SYSCALL,"Syscall: _exit(%d)\n",exitcode);
 

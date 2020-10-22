@@ -236,10 +236,8 @@ kprintf("DELTED!!");
 void
 proc_bootstrap(void)
 {
-	kprintf("proc bootstraped");
   kproc = proc_create("[kernel]");
   if (kproc == NULL) {
-	kprintf("proc bootstraped null");
     panic("proc_create for kproc failed\n");
   }
 #ifdef UW
