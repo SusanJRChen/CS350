@@ -235,6 +235,10 @@ proc_destroy(struct proc *proc)
 void
 proc_bootstrap(void)
 {
+#if OPT_A2
+	GLOBAL_PID_LOCK = lock_create("Global PID lock");
+	GLOBAL_PID = 1;
+#endif
   kproc = proc_create("[kernel]");
   if (kproc == NULL) {
     panic("proc_create for kproc failed\n");
@@ -250,10 +254,6 @@ proc_bootstrap(void)
     panic("could not create no_proc_sem semaphore\n");
   }
 #endif // UW
-#if OPT_A2
-	GLOBAL_PID_LOCK = lock_create("Global PID lock");
-	GLOBAL_PID = 1;
-#endif
 }
 
 /*
