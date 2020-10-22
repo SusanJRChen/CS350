@@ -107,10 +107,16 @@ proc_create(const char *name)
 	proc->console = NULL;
 #endif // UW
 #if OPT_A2
-	lock_acquire(GLOBAL_PID_LOCK);
-	proc->p_pid = GLOBAL_PID;
-	GLOBAL_PID += 1;
-	lock_release(GLOBAL_PID_LOCK);
+	// if (GLOBAL_PID_LOCK) {
+	// 	lock_acquire(GLOBAL_PID_LOCK);
+	// 	proc->p_pid = GLOBAL_PID;
+	// 	GLOBAL_PID += 1;
+	// 	lock_release(GLOBAL_PID_LOCK);
+	// }
+	// else {
+	// 	GLOBAL_PID = 10000;
+	// }
+	proc->p_pid = (int) proc << 1;
 
 	proc->p_parent = NULL;
 	proc->p_children = array_create();
