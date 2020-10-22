@@ -63,8 +63,6 @@ int sys_fork(struct trapframe * tf, pid_t * retval) {
 #endif /* OPT_A2 */
 
 void sys__exit(int exitcode) {
-
-  // kprintf("e\n");
   #if OPT_A2
     struct addrspace *as;
     struct proc *p = curproc;

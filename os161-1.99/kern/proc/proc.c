@@ -107,6 +107,7 @@ proc_create(const char *name)
 	proc->console = NULL;
 #endif // UW
 #if OPT_A2
+kprintf(GLOBAL_PID);
 	// handle before lock was created
 	if (GLOBAL_PID_LOCK) {
 		lock_acquire(GLOBAL_PID_LOCK);
