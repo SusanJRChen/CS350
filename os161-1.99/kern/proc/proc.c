@@ -148,26 +148,6 @@ proc_destroy(struct proc *proc)
 	KASSERT(proc != NULL);
 	KASSERT(proc != kproc);
 
-#if OPT_A2
-	// set children's parent to null
-	lock_acquire(proc->p_children_lk);
-	for (unsigned int i = array_num(proc->p_children); i > 0; i--) {
-		struct proc * cur = array_get(proc->p_children, i-1);
-		cur->parent = NULL;
-		kfree(cur);
-		array_remove(proc->p_children, i-1);
-	}
-	// destroy or free variables
-	array_destroy(proc->p_children);
-	cv_destroy(proc->p_cv);
-	kfree(proc->p_name);
-	lock_release(proc->p_children_lk);
-
-	// free proc
-	kfree(proc);
-
-#endif
-
 	/*
 	 * We don't take p_lock in here because we must have the only
 	 * reference to this structure. (Otherwise it would be
@@ -210,8 +190,27 @@ proc_destroy(struct proc *proc)
 	threadarray_cleanup(&proc->p_threads);
 	spinlock_cleanup(&proc->p_lock);
 
+#if OPT_A2
+	// set children's parent to null
+	lock_acquire(proc->p_children_lk);
+	for (unsigned int i = array_num(proc->p_children); i > 0; i--) {
+		struct proc * cur = array_get(proc->p_children, i-1);
+		cur->parent = NULL;
+		kfree(cur);
+		array_remove(proc->p_children, i-1);
+	}
+	// destroy or free variables
+	array_destroy(proc->p_children);
+	cv_destroy(proc->p_cv);
+	kfree(proc->p_name);
+	lock_release(proc->p_children_lk);
+
+	// free proc
+	kfree(proc);
+#else
 	kfree(proc->p_name);
 	kfree(proc);
+#endif
 
 #ifdef UW
 	/* decrement the process count */
