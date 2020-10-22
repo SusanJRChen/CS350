@@ -122,6 +122,7 @@ proc_create(const char *name)
 	// initiate other variables
 	proc->p_parent = NULL;
 	proc->p_children = array_create();
+	array_init(proc->p_children);
 	proc->p_cv = cv_create(proc->p_name);
 	proc->p_children_lk = lock_create(proc->p_name);
 	proc->p_has_exited = false;
