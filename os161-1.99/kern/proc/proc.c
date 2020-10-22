@@ -253,7 +253,6 @@ proc_create_runprogram(const char *name)
 	proc = proc_create(name);
   kprintf("new pROCS2!!!!");
 	if (proc == NULL) {
-  kprintf("new NULL!!!!");
 		return NULL;
 	}
 
@@ -300,6 +299,7 @@ proc_create_runprogram(const char *name)
 	proc_count++;
 	V(proc_count_mutex);
 #endif // UW
+  kprintf("POINTER IS %p ", proc);
 
 	return proc;
 }
