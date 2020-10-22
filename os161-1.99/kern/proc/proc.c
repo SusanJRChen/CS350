@@ -115,8 +115,7 @@ proc_create(const char *name)
 		lock_release(GLOBAL_PID_LOCK);
 	}
 	else {
-		proc->p_pid = GLOBAL_PID;
-		GLOBAL_PID += 1;
+		proc->p_pid = 1;
 	}
 	// initiate other variables
 	proc->p_parent = NULL;
@@ -252,7 +251,7 @@ proc_bootstrap(void)
 #endif // UW
 #if OPT_A2
 	GLOBAL_PID_LOCK = lock_create("Global PID lock");
-	GLOBAL_PID = 1;
+	GLOBAL_PID = 2;
 #endif
 }
 
