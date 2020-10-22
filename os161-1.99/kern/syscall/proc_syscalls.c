@@ -104,7 +104,19 @@ void sys__exit(int exitcode) {
         }
       }
       lock_release(parent->p_children_lk);
+    }
 
+    // destroy all children that exited
+    lock_acquire(p->p_children_lk);
+    for (unsigned int i = 0; i < array_num(parent->p_children); i++) {
+      struct proc * cur = array_get(parent->p_children, i);
+      if (cur->p_has_exited_end) {
+        proc_destroy(cur);
+      }
+    }
+    lock_release(p->p_children_lk);
+
+    if (p->p_parent != NULL) {
       // if a parent is waiting on child to exit, wake them up
       cv_signal(p->p_cv, p->p_children_lk);
     }
