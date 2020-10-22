@@ -20,7 +20,7 @@
 int sys_fork(struct trapframe * tf, pid_t * retval) {
   // Create a new process structure for the child process.
   struct proc * new_proc = proc_create_runprogram(curproc->p_name);
-  // kprintf("f\n");
+  KASSERT(new_proc->p_pid > 0);
   if (new_proc == NULL) {
     // proc_create_runprogram failed, probably not enough memory
     return ENOMEM;
@@ -193,7 +193,6 @@ sys_waitpid(pid_t pid,
   #if OPT_A2
     for (unsigned int i = 0; i < array_num(curproc->p_children); i++) {
       struct proc * cur = array_get(curproc->p_children, i);
-      kprintf("c %d %d", cur->p_pid, pid);
       if (cur->p_pid == pid) {
         lock_acquire(cur->p_children_lk);
         while(!cur->p_has_exited) {
