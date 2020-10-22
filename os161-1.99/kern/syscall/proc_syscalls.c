@@ -201,7 +201,7 @@ sys_waitpid(pid_t pid,
         exitstatus = _MKWAIT_EXIT(cur->p_exit_code);
         lock_release(cur->p_children_lk);
       }
-      else if (i == array_num(cur->p_children) - 1) {
+      else if (i == array_num(curproc->p_children) - 1) {
         // no children with pid exist
         *retval = -1;
         return ECHILD;
