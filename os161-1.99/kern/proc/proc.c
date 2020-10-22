@@ -107,7 +107,6 @@ proc_create(const char *name)
 	proc->console = NULL;
 #endif // UW
 #if OPT_A2
-kprintf("%d", GLOBAL_PID);
 	// handle before lock was created
 	if (GLOBAL_PID_LOCK) {
 		lock_acquire(GLOBAL_PID_LOCK);
@@ -118,6 +117,7 @@ kprintf("%d", GLOBAL_PID);
 	else {
 		proc->p_pid = 1;
 	}
+kprintf("%d", proc->p_pid);
 	// initiate other variables
 	proc->p_parent = NULL;
 	proc->p_children = array_create();
