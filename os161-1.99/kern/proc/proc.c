@@ -226,6 +226,7 @@ proc_bootstrap(void)
   }
 #endif // UW
 #if OPT_A2
+	GLOBAL_PID_LOCK = lock_create("Global PID lock");
 	GLOBAL_PID = 1;
 #endif
 }
