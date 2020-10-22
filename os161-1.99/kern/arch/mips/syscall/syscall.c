@@ -186,7 +186,7 @@ syscall(struct trapframe *tf)
  */
 #if OPT_A2
 void
-enter_forked_process(struct trapframe *tf, unsigned long i)
+enter_forked_process(struct trapframe *tf)
 {
 	struct trapframe tf_c = *tf;
 
@@ -201,8 +201,6 @@ enter_forked_process(struct trapframe *tf, unsigned long i)
 
 	// return to usermode
 	mips_usermode(&tf_c);
-
-	(void)i;
 }
 #else
 void

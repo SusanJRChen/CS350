@@ -18,7 +18,6 @@
 
 #if OPT_A2
 int sys_fork(struct trapframe * tf, pid_t * retval) {
-  kprintf("forkED!!!!");
   // Create a new process structure for the child process.
   struct proc * new_proc = proc_create_runprogram(curproc->p_name);
   if (new_proc == NULL) {
@@ -51,6 +50,7 @@ int sys_fork(struct trapframe * tf, pid_t * retval) {
     return ENOMEM;
   }
   memcpy(new_tf, tf, sizeof(struct trapframe));
+
   thread_fork(new_proc->p_name, (struct proc *) &new_proc, (void *) &enter_forked_process, (struct trapframe *) &new_tf, 1);
 
   // Set the return value to new process pid
@@ -74,7 +74,6 @@ void sys__exit(int exitcode) {
 
     // find the curproc in the parent proc and set exit code
     if (curproc->p_parent != NULL) {
-      kprintf("CURPROC has parent\n");
       lock_acquire(curproc->p_parent->p_children_lk);
       for (unsigned int i = 0; i < array_num(curproc->p_parent->p_children); i++) {
         struct proc *cur = array_get(curproc->p_parent->p_children, i);
@@ -88,7 +87,6 @@ void sys__exit(int exitcode) {
       // if a parent is waiting on child to exit, wake them up
       cv_broadcast(curproc->p_cv, curproc->p_children_lk);
     }
-      kprintf("CURPROC coninuted to exit \n");
 
     DEBUG(DB_SYSCALL,"Syscall: _exit(%d)\n",exitcode);
 
@@ -190,7 +188,6 @@ sys_waitpid(pid_t pid,
      Fix this!
   */
   #if OPT_A2
-  kprintf("WAITED!!!!");
     for (unsigned int i = 0; i < array_num(curproc->p_children); i++) {
       struct proc * cur = array_get(curproc->p_children, i);
       if (cur->p_pid == pid) {
