@@ -72,7 +72,7 @@ struct semaphore *no_proc_sem;
 
 #if OPT_A2
 struct lock *GLOBAL_PID_LOCK;
-int GLOBAL_PID;
+volatile int GLOBAL_PID;
 #endif
 
 /*
