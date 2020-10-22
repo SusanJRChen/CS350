@@ -174,7 +174,6 @@ sys_waitpid(pid_t pid,
 	    int options,
 	    pid_t *retval)
 {
-  // kprintf("w\n");
   int exitstatus;
   int result;
   if (options != 0) {

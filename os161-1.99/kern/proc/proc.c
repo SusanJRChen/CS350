@@ -117,7 +117,6 @@ proc_create(const char *name)
 	else {
 		proc->p_pid = 1;
 	}
-kprintf("%d", proc->p_pid);
 	// initiate other variables
 	proc->p_parent = NULL;
 	proc->p_children = array_create();
