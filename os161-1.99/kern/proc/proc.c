@@ -195,15 +195,25 @@ proc_destroy(struct proc *proc)
 #if OPT_A2
 	// set children's parent to null
 	lock_acquire(proc->p_children_lk);
+
+	// remove all children, destroy the ones that are already dead
 	for (unsigned int i = array_num(proc->p_children); i > 0; i--) {
 		struct proc * cur = array_get(proc->p_children, i-1);
-		cur->p_parent = NULL;
+		lock_acquire(cur->p_children_lk);
+		if (cur->p_has_exit_ended) {
+
+		}
+		else {
+			cur->p_parent = NULL;
+		}
 		array_remove(proc->p_children, i-1);
+		lock_release(cur->p_children_lk);
 	}
 	// destroy or free variables
 	array_destroy(proc->p_children);
 	cv_destroy(proc->p_cv);
 	kfree(proc->p_name);
+
 	lock_release(proc->p_children_lk);
 
 	// free proc
