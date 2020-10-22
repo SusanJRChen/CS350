@@ -70,27 +70,6 @@ void sys__exit(int exitcode) {
     /* for now, just include this to keep the compiler from complaining about
       an unused variable */
 
-    // set curproc to exited
-    p->p_has_exited_began = true;
-
-    // find the curproc in the parent proc and set exit code
-    if (p->p_parent != NULL) {
-      struct proc * parent = p->p_parent;
-      lock_acquire(parent->p_children_lk);
-      for (unsigned int i = 0; i < array_num(parent->p_children); i++) {
-        struct proc *cur = array_get(parent->p_children, i);
-        if (!cur->p_has_exited_end && cur->p_pid == p->p_pid) {
-          cur->p_has_exited_end = true;
-          cur->p_exit_code = _MKWAIT_EXIT(exitcode);
-          break;
-        }
-      }
-      lock_release(parent->p_children_lk);
-
-      // if a parent is waiting on child to exit, wake them up
-      cv_broadcast(p->p_cv, p->p_children_lk);
-    }
-
     DEBUG(DB_SYSCALL,"Syscall: _exit(%d)\n",exitcode);
 
     KASSERT(curproc->p_addrspace != NULL);
@@ -108,6 +87,27 @@ void sys__exit(int exitcode) {
     /* detach this thread from its process */
     /* note: curproc cannot be used after this call */
     proc_remthread(curthread);
+
+    // set curproc to exited
+    p->p_has_exited_began = true;
+    p->p_exit_code = _MKWAIT_EXIT(exitcode);
+
+    // find the curproc in the parent proc and set exit code
+    if (p->p_parent != NULL) {
+      struct proc * parent = p->p_parent;
+      lock_acquire(parent->p_children_lk);
+      for (unsigned int i = 0; i < array_num(parent->p_children); i++) {
+        struct proc *cur = array_get(parent->p_children, i);
+        if (!cur->p_has_exited_end && cur->p_pid == p->p_pid) {
+          cur->p_has_exited_end = true;
+          break;
+        }
+      }
+      lock_release(parent->p_children_lk);
+
+      // if a parent is waiting on child to exit, wake them up
+      cv_signal(p->p_cv, p->p_children_lk);
+    }
 
     /* if this is the last user process in the system, proc_destroy()
       will wake up the kernel menu thread */
@@ -192,10 +192,11 @@ sys_waitpid(pid_t pid,
   */
   #if OPT_A2
     struct proc* parent = curproc;
+
+    // search for proc with pid in children
     struct proc * found_proc = NULL;
     for (unsigned int i = 0; i < array_num(parent->p_children); i++) {
       struct proc * cur = array_get(parent->p_children, i);
-      kprintf("%d", i);
       if (cur->p_pid == pid) {
         found_proc = cur;
       }
@@ -211,7 +212,7 @@ sys_waitpid(pid_t pid,
     while(!found_proc->p_has_exited_began) {
       cv_wait(found_proc->p_cv, found_proc->p_children_lk);
     }
-    exitstatus = _MKWAIT_EXIT(found_proc->p_exit_code);
+    exitstatus = found_proc->p_exit_code;
     lock_release(found_proc->p_children_lk);
 
     result = copyout((void *)&exitstatus,status,sizeof(int));
