@@ -107,6 +107,7 @@ void sys__exit(int exitcode) {
       // if a parent is waiting on child to exit, wake them up
       cv_signal(p->p_cv, p->p_children_lk);
     }
+    // destroy this proc if it has no parent, this will recursively delete any exited children
     else {
       /* if this is the last user process in the system, proc_destroy()
         will wake up the kernel menu thread */
