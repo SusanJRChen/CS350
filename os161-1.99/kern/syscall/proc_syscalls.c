@@ -120,10 +120,11 @@ void sys__exit(int exitcode) {
       // if a parent is waiting on child to exit, wake them up
       cv_signal(p->p_cv, p->p_children_lk);
     }
-
-    /* if this is the last user process in the system, proc_destroy()
-      will wake up the kernel menu thread */
-    proc_destroy(p);
+    else {
+      /* if this is the last user process in the system, proc_destroy()
+        will wake up the kernel menu thread */
+      proc_destroy(p);
+    }
 
     thread_exit();
     /* thread_exit() does not return, so we should never get here */
