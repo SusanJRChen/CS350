@@ -21,16 +21,15 @@
 
 #if OPT_A2
 int sys_execv(const char * program, char ** args) {
-    (void) program;
-    (void) args;
     kprintf("execv");
 
     // Count the number of arguments and copy them into the kernel
-    int arg_len = 0;
-    size_t arg_total_len = 0;
-    for (; args[arg_len] != NULL; arg_len++) {
-        arg_total_len += strlen(args[arg_len]) + 1;
-    }
+    // int arg_len = 0;
+    // size_t arg_total_len = 0;
+    // for (; args[arg_len] != NULL; arg_len++) {
+    //     arg_total_len += strlen(args[arg_len]) + 1;
+    // }
+    (void) args;
 
     // Copy the program path from user space into the kernel
     size_t progname_size = strlen((char *) program) + 1;
@@ -53,7 +52,7 @@ int sys_execv(const char * program, char ** args) {
 	}
 
 	/* We should be a new process. */
-	KASSERT(curproc_getas() == NULL);
+	// KASSERT(curproc_getas() == NULL);
 
 	/* Create a new address space. */
 	as = as_create();
@@ -63,7 +62,7 @@ int sys_execv(const char * program, char ** args) {
 	}
 
 	/* Switch to it and activate it. */
-	curproc_setas(as);
+	struct addrspace * cur_as = curproc_setas(as);
 	as_activate();
 
 	/* Load the executable. */
