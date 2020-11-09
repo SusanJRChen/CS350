@@ -95,7 +95,7 @@ int sys_execv(const char * program, char ** args) {
     // Copy the arguments from the user space into the new address space
     vaddr_t * addresses = kmalloc((kernal_arg_len + 1) * (sizeof(vaddr_t)));
     for (int i = 0; i < kernal_arg_len; i++) {
-        size_t cur_arg_len = strlen(kernal_args[i]) + 1, 4)
+        size_t cur_arg_len = ROUNDUP(strlen(kernal_args[i]) + 1, 4)
         ptr -= cur_arg_len;
 
         // Push on the args onto the stack
