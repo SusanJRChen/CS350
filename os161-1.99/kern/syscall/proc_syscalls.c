@@ -104,7 +104,7 @@ int sys_execv(const char * program, char ** args) {
         if (copy_err) return copy_err;
 
         // Keep track of the address of each string
-        addresses[i] = ptr;
+        addresses[i] = (char *) ptr;
     }
     // Put a NULL terminate array of pointers to the strings
     addresses[kernal_arg_len] = NULL;
