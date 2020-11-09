@@ -31,9 +31,7 @@ int sys_execv(const char * program, char ** args) {
         // + 1 for the null termination
         size_t cur_arg_size = strlen(args[i]) + 1;
         kernal_args[i] = kmalloc(cur_arg_size);
-        int copy_err = copyin((const_userptr_t)args[i], (void *) kernal_args[i], cur_arg_size);
-        // if copying did not succeed, return it
-        if (copy_err) return copy_err;
+        copyin((const_userptr_t)args[i], (void *) kernal_args[i], cur_arg_size);
     }
     // Terminating element
     kernal_args[kernal_arg_len] = NULL;
@@ -42,13 +40,10 @@ int sys_execv(const char * program, char ** args) {
     // Copy the program path from user space into the kernel
     size_t kernal_program_size = strlen((char *) program) + 1;
     char * kernal_program = kmalloc(kernal_program_size);
-    int copy_err = copyin((const_userptr_t) program, (void *) kernal_program, kernal_program_size);
-    // if copying did not succeed, return it
-    if (copy_err) return copy_err;
-
+    copyin((const_userptr_t) program, (void *) kernal_program, kernal_program_size);
 
     // Copy from runprogram
-	struct addrspace *as;
+	struct addrspace *old_as, *as;
 	struct vnode *v;
 	vaddr_t entrypoint, stackptr;
 	int result;
@@ -70,8 +65,7 @@ int sys_execv(const char * program, char ** args) {
 	}
 
 	/* Switch to it and activate it. */
-	// struct addrspace * cur_as = curproc_setas(as);
-    curproc_setas(as);
+    old_as = curproc_setas(as);
 	as_activate();
 
 	/* Load the executable. */
@@ -93,24 +87,32 @@ int sys_execv(const char * program, char ** args) {
 	}
 
     // Copy the arguments from the user space into the new address space
+
+    // Copy the strings into stack and get the addresses
     char ** addresses = kmalloc((kernal_arg_len + 1) * (sizeof(vaddr_t)));
     for (int i = 0; i < kernal_arg_len; i++) {
         size_t cur_arg_len = ROUNDUP((strlen(kernal_args[i]) + 1), 4);
         stackptr -= cur_arg_len;
 
         // Push on the args onto the stack
-        copy_err = copyout((void *) kernal_args[i], (userptr_t) stackptr, cur_arg_len);
-        if (copy_err) return copy_err;
+        copyout((void *) kernal_args[i], (userptr_t) stackptr, cur_arg_len);
 
         // Keep track of the argument
         addresses[i] = (char *) stackptr;
         kprintf("%s at %p with size %d\n", addresses[i], (void *)&stackptr, (int) cur_arg_len);
     }
+
+    // Copy the addresses into stack
+    for (int i = kernal_arg_len; i >= 0; i--) {
+        stackptr -= sizeof(vaddr_t);
+        copyout((void *) &addresses[i], (userptr_t)stackptr, sizeof(vaddr_t));
+    }
+
     // Put a NULL terminate array of pointers to the strings
     addresses[kernal_arg_len] = NULL;
 
     // Delete the old address space
-
+    as_destroy(old_as);
 
     // Call enter_new_process with the address, stack pointer, and program entry point
 	enter_new_process(kernal_arg_len, (userptr_t) addresses, stackptr, entrypoint);
