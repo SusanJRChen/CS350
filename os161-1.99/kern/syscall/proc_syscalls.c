@@ -14,6 +14,7 @@
 #include <mips/trapframe.h>
 #include <synch.h>
 #include <vfs.h>
+#include <vm.h>
 #include "opt-A2.h"
 
   /* this implementation of sys__exit does not do anything with the exit code */
@@ -25,16 +26,18 @@ int sys_execv(const char * program, char ** args) {
     int kernal_arg_len = 0;
     for (; args[kernal_arg_len] != NULL; kernal_arg_len++) { }
 
-    kprintf("execv %d\n", kernal_arg_len);
-    char ** kernal_args = kmalloc((size_t) (kernal_arg_len * sizeof(char *)));
+    char ** kernal_args = kmalloc((size_t) ((kernal_arg_len + 1)* sizeof(char *)));
     for (int i = 0; i < kernal_arg_len; i++) {
         size_t cur_arg_size = (strlen(args[i])) + 1;
         kernal_args[i] = kmalloc(cur_arg_size);
+        kprintf("%s has %d\n", kernal_args[i], strlen(kernal_args[i]));
         int copy_err = copyin((const_userptr_t)args[i], (void *) kernal_args[i], cur_arg_size);
         // if copying did not succeed, return it
         if (copy_err) return copy_err;
     }
+    // Terminating element
     kernal_args[kernal_arg_len] = NULL;
+
 
     // Copy the program path from user space into the kernel
     size_t kernal_program_size = strlen((char *) program) + 1;
@@ -42,7 +45,7 @@ int sys_execv(const char * program, char ** args) {
     int copy_err = copyin((const_userptr_t) program, (void *) kernal_program, kernal_program_size);
     // if copying did not succeed, return it
     if (copy_err) return copy_err;
-    kprintf("execv %s\n", kernal_program);
+
 
     // Copy from runprogram
 	struct addrspace *as;
@@ -90,6 +93,21 @@ int sys_execv(const char * program, char ** args) {
 	}
 
     // Copy the arguments from the user space into the new address space
+    char ** temp_pointer = kmalloc((kernal_arg_len + 1)* sizeof(char*));
+    for (int i =0; i < kernal_arg_len; i++) {
+        size_t cur_arg_len = ROUNDUP(strlen(kernal_args[i]) + 1, 4);
+        stackptr -= strlen(kernal_args[i]);
+
+        // Push on the args onto the stack
+        copy_err = copyout((void *) kernal_args[i], (userptr_t) stackptr, cur_arg_len);
+        if (copy_err) return copy_err;
+
+        // Keep track of the address of each string
+        temp_pointer[i] = (char *) stackptr;
+    }
+    // Put a NULL terminate array of pointers to the strings
+    temp_pointer[kernal_arg_len] = NULL;
+
 
 
     // Delete the old address space
