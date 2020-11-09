@@ -17,6 +17,10 @@
   /* this needs to be fixed to get exit() and waitpid() working properly */
 
 #if OPT_A2
+int sys_execv(const char * program, char ** args) {
+
+}
+
 int sys_fork(struct trapframe * tf, pid_t * retval) {
   // Create a new process structure for the child process.
   struct proc * new_proc = proc_create_runprogram(curproc->p_name);
