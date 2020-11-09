@@ -21,14 +21,12 @@
 
 #if OPT_A2
 int sys_execv(const char * program, char ** args) {
-    kprintf("execv");
-
     // Count the number of arguments and copy them into the kernel
-    // int arg_len = 0;
-    // size_t arg_total_len = 0;
-    // for (; args[arg_len] != NULL; arg_len++) {
-    //     arg_total_len += strlen(args[arg_len]) + 1;
-    // }
+    int arg_len = 0;
+    size_t arg_total_len = 0;
+    for (; args[arg_len] != NULL; arg_len++) {
+        arg_total_len += strlen(args[arg_len]) + 1;
+    }
     (void) args;
 
     // Copy the program path from user space into the kernel
@@ -37,7 +35,7 @@ int sys_execv(const char * program, char ** args) {
     int copy_err = copyin((const_userptr_t) program, (void *) progname, progname_size);
     // if copying did not succeed, return it
     if (copy_err) return copy_err;
-    kprintf("copy success");
+    kprintf("execv %s, with %d args\n", progname, arg_len);
 
     // Copy from runprogram
 	struct addrspace *as;
