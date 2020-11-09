@@ -3,6 +3,7 @@
 #include <kern/unistd.h>
 #include <kern/wait.h>
 #include <kern/limits.h>
+#include <kern/fcntl.h>
 #include <lib.h>
 #include <syscall.h>
 #include <current.h>
@@ -32,8 +33,8 @@ int sys_execv(const char * program, char ** args) {
 
     // Copy the program path from user space into the kernel
     size_t progname_size = strlen((char *) program) + 1;
-    char * progname = kmalloc(PATH_MAX);
-    int copy_err = copyinstr(program, progname, PATH_MAX, &progname_size);
+    char * progname = kmalloc(progname_size);
+    int copy_err = copyin((char *) program, progname, progname_size);
     // if copying did not succeed, return it
     if (copy_err) return copy_err;
 
