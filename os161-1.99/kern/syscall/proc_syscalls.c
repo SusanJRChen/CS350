@@ -34,7 +34,7 @@ int sys_execv(const char * program, char ** args) {
     // Copy the program path from user space into the kernel
     size_t progname_size = strlen((char *) program) + 1;
     char * progname = kmalloc(progname_size);
-    int copy_err = copyin((char *) program, progname, progname_size);
+    int copy_err = copyin((const_userptr_t) program, (void *) progname, progname_size);
     // if copying did not succeed, return it
     if (copy_err) return copy_err;
 
