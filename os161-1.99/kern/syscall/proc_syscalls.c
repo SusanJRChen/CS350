@@ -93,7 +93,7 @@ int sys_execv(const char * program, char ** args) {
 	}
 
     // Copy the arguments from the user space into the new address space
-    vaddr_t * temp_pointer = kmalloc((kernal_arg_len + 1)* sizeof(vaddr_t));
+    vaddr_t * addresses = kmalloc((kernal_arg_len + 1)* sizeof(vaddr_t));
     for (int i =0; i < kernal_arg_len; i++) {
         size_t cur_arg_len = ROUNDUP(strlen(kernal_args[i]) + 1, 4);
         stackptr -= strlen(kernal_args[i]);
@@ -103,10 +103,10 @@ int sys_execv(const char * program, char ** args) {
         if (copy_err) return copy_err;
 
         // Keep track of the address of each string
-        temp_pointer[i] = stackptr;
+        addresses[i] = stackptr;
     }
     // Put a NULL terminate array of pointers to the strings
-    temp_pointer[kernal_arg_len] = NULL;
+    addresses[kernal_arg_len] = NULL;
 
 
 
