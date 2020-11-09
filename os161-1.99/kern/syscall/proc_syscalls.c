@@ -26,7 +26,7 @@ int sys_execv(const char * program, char ** args) {
     for (; args[kernal_arg_len] != NULL; kernal_arg_len++) { }
 
     kprintf("execv %d\n", kernal_arg_len);
-    char ** kernal_args = kmalloc((size_t) (kernal_arg_len * sizeof(char *))));
+    char ** kernal_args = kmalloc((size_t) (kernal_arg_len * sizeof(char *)));
     for (int i = 0; i < kernal_arg_len; i++) {
         size_t cur_arg_size = (strlen(args[i])) + 1;
         kernal_args[i] = kmalloc(cur_arg_size);
