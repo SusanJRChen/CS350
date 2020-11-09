@@ -203,7 +203,7 @@ proc_destroy(struct proc *proc)
 			lock_acquire(cur->p_children_lk);
 			cur->p_parent = NULL;
 			lock_release(cur->p_children_lk);
-			// array_remove(proc->p_children, i-1);
+			array_remove(proc->p_children, i-1);
 		}
 		else {
 			proc_destroy(cur);
