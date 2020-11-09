@@ -93,20 +93,23 @@ int sys_execv(const char * program, char ** args) {
 	}
 
     // Copy the arguments from the user space into the new address space
-    vaddr_t * addresses = kmalloc((kernal_arg_len + 1)* sizeof(vaddr_t));
-    for (int i =0; i < kernal_arg_len; i++) {
+    userptr_t kernal_argv;
+    vaddr_t ptr = *stackptr;
+    char ** addresses = kmalloc((kernal_arg_len + 1) * sizeof(char *));
+    for (int i = 0; i < kernal_arg_len; i++) {
         size_t cur_arg_len = ROUNDUP(strlen(kernal_args[i]) + 1, 4);
-        stackptr -= strlen(kernal_args[i]);
+        ptr -= cur_arg_len;
 
         // Push on the args onto the stack
-        copy_err = copyout((void *) kernal_args[i], (userptr_t) stackptr, cur_arg_len);
+        copy_err = copyout((void *) kernal_args[i], (userptr_t) ptr, cur_arg_len);
         if (copy_err) return copy_err;
 
         // Keep track of the address of each string
-        addresses[i] = stackptr;
+        addresses[i] = ptr;
     }
     // Put a NULL terminate array of pointers to the strings
     addresses[kernal_arg_len] = NULL;
+    stackptr = &ptr;
 
 
 
@@ -115,7 +118,7 @@ int sys_execv(const char * program, char ** args) {
 
 
     // Call enter_new_process with the address, stack pointer, and program entry point
-	enter_new_process(kernal_arg_len, (userptr_t) stackptr, ROUNDUP(stackptr, 8), entrypoint);
+	enter_new_process(kernal_arg_len, (userptr_t) addresses, stackptr, entrypoint);
 
 	/* enter_new_process does not return. */
 	panic("enter_new_process returned\n");
