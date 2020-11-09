@@ -105,10 +105,11 @@ int sys_execv(const char * program, char ** args) {
 
         // Keep track of the address of each string
         addresses[i] = (char *) ptr;
+        kprintf("%s\n", addresses[i]);
     }
     // Put a NULL terminate array of pointers to the strings
     addresses[kernal_arg_len] = NULL;
-    stackptr = ptr;
+    stackptr = ROUNDUP(ptr, 8);
 
     // Delete the old address space
 
