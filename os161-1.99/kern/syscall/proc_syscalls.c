@@ -62,7 +62,8 @@ int sys_execv(const char * program, char ** args) {
 	}
 
 	/* Switch to it and activate it. */
-	struct addrspace * cur_as = curproc_setas(as);
+	// struct addrspace * cur_as = curproc_setas(as);
+    curproc_setas(as);
 	as_activate();
 
 	/* Load the executable. */
