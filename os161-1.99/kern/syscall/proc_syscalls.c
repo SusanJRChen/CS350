@@ -27,6 +27,7 @@ int sys_execv(const char * program, char ** args) {
     for (; args[kernal_arg_len] != NULL; kernal_arg_len++) {
         kernal_arg_total_len += strlen(args[kernal_arg_len]) + 1;
     }
+    kprintf("execv %d\n", kernal_arg_len);
     char ** kernal_args = kmalloc(kernal_arg_total_len);
     for (int i = 0; i < kernal_arg_len; i++) {
         size_t cur_arg_size = (strlen(args[i])) + 1;
@@ -42,7 +43,7 @@ int sys_execv(const char * program, char ** args) {
     int copy_err = copyin((const_userptr_t) program, (void *) kernal_program, kernal_program_size);
     // if copying did not succeed, return it
     if (copy_err) return copy_err;
-    kprintf("execv %s, with %d args\n", kernal_program, kernal_arg_len);
+    kprintf("execv %s\n", kernal_program);
 
     // Copy from runprogram
 	struct addrspace *as;
