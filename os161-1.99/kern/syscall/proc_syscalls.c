@@ -104,7 +104,7 @@ int sys_execv(const char * program, char ** args) {
 
         // Keep track of the argument
         addresses[i] = (char *) stackptr;
-        kprintf("%s at %p\n", addresses[i], (void *)&stackptr);
+        kprintf("%s at %p with size %d\n", addresses[i], (void *)&stackptr, (int) cur_arg_len);
     }
     // Put a NULL terminate array of pointers to the strings
     addresses[kernal_arg_len] = NULL;
