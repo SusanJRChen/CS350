@@ -2,6 +2,7 @@
 #include <kern/errno.h>
 #include <kern/unistd.h>
 #include <kern/wait.h>
+#include <kern/limits.h>
 #include <lib.h>
 #include <syscall.h>
 #include <current.h>
@@ -11,7 +12,7 @@
 #include <copyinout.h>
 #include <mips/trapframe.h>
 #include <synch.h>
-#include <kern/limits.h>
+#include <vfs.h>
 #include "opt-A2.h"
 
   /* this implementation of sys__exit does not do anything with the exit code */
@@ -25,8 +26,8 @@ int sys_execv(const char * program, char ** args) {
     // Count the number of arguments and copy them into the kernel
     int arg_len = 0;
     size_t arg_total_len = 0;
-    for (; args[count] != NULL; count++) {
-        arg_total_len += strlen(args[count]) + 1;
+    for (; args[arg_len] != NULL; arg_len++) {
+        arg_total_len += strlen(args[arg_len]) + 1;
     }
 
     // Copy the program path from user space into the kernel
