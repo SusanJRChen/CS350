@@ -23,14 +23,13 @@
 int sys_execv(const char * program, char ** args) {
     // Count the number of arguments and copy them into the kernel
     int kernal_arg_len = 0;
-    size_t kernal_arg_total_len = 0;
-    for (; args[kernal_arg_len] != NULL; kernal_arg_len++) {
-        kernal_arg_total_len += strlen(args[kernal_arg_len]) + 1;
-    }
+    for (; args[kernal_arg_len] != NULL; kernal_arg_len++) { }
+
     kprintf("execv %d\n", kernal_arg_len);
-    char ** kernal_args = kmalloc(kernal_arg_total_len);
+    char ** kernal_args = kmalloc((size_t) (kernal_arg_len * sizeof(char *))));
     for (int i = 0; i < kernal_arg_len; i++) {
         size_t cur_arg_size = (strlen(args[i])) + 1;
+        kernal_args[i] = kmalloc(cur_arg_size);
         int copy_err = copyin((const_userptr_t)args[i], (void *) kernal_args[i], cur_arg_size);
         // if copying did not succeed, return it
         if (copy_err) return copy_err;
