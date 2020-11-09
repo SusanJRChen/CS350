@@ -22,21 +22,27 @@
 #if OPT_A2
 int sys_execv(const char * program, char ** args) {
     // Count the number of arguments and copy them into the kernel
-    int arg_len = 0;
-    size_t arg_total_len = 0;
-    for (; args[arg_len] != NULL; arg_len++) {
-        arg_total_len += strlen(args[arg_len]) + 1;
-        kprintf(args[arg_len]);
+    int kernal_arg_len = 0;
+    size_t kernal_arg_total_len = 0;
+    for (; args[kernal_arg_len] != NULL; kernal_arg_len++) {
+        arg_total_len += strlen(args[kernal_arg_len]) + 1;
     }
-    (void) args;
+    char ** kernal_args = malloc(kernal_arg_total_len);
+    for (int i = 0; i < kernal_arg_len; i++) {
+        size_t cur_arg_size = (strlen(args[i])) + 1;
+        int copy_err = copyin((const_userptr_t)args[i], (void *) kernal_args[i], cur_arg_size);
+        // if copying did not succeed, return it
+        if (copy_err) return copy_err;
+    }
+    kernal_args[kernal_arg_len] = NULL;
 
     // Copy the program path from user space into the kernel
-    size_t progname_size = strlen((char *) program) + 1;
-    char * progname = kmalloc(progname_size);
-    int copy_err = copyin((const_userptr_t) program, (void *) progname, progname_size);
+    size_t kernal_program_size = strlen((char *) program) + 1;
+    char * kernal_program = kmalloc(kernal_program_size);
+    int copy_err = copyin((const_userptr_t) program, (void *) kernal_program, kernal_program_size);
     // if copying did not succeed, return it
     if (copy_err) return copy_err;
-    kprintf("execv %s, with %d args\n", progname, arg_len);
+    kprintf("execv %s, with %d args\n", kernal_program, arg_len);
 
     // Copy from runprogram
 	struct addrspace *as;
@@ -45,7 +51,7 @@ int sys_execv(const char * program, char ** args) {
 	int result;
 
 	/* Open the file. */
-	result = vfs_open(progname, O_RDONLY, 0, &v);
+	result = vfs_open(kernal_program, O_RDONLY, 0, &v);
 	if (result) {
 		return result;
 	}
