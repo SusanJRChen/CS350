@@ -23,6 +23,7 @@
 int sys_execv(const char * program, char ** args) {
     (void) program;
     (void) args;
+    kprintf("execv");
 
     // Count the number of arguments and copy them into the kernel
     int arg_len = 0;
@@ -37,6 +38,7 @@ int sys_execv(const char * program, char ** args) {
     int copy_err = copyin((const_userptr_t) program, (void *) progname, progname_size);
     // if copying did not succeed, return it
     if (copy_err) return copy_err;
+    kprintf("copy success");
 
     // Copy from runprogram
 	struct addrspace *as;
