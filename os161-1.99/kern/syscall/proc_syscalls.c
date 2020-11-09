@@ -26,6 +26,7 @@ int sys_execv(const char * program, char ** args) {
     size_t arg_total_len = 0;
     for (; args[arg_len] != NULL; arg_len++) {
         arg_total_len += strlen(args[arg_len]) + 1;
+        kprintf(args[arg_len]);
     }
     (void) args;
 
