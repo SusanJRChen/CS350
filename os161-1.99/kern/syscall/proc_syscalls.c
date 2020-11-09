@@ -11,6 +11,7 @@
 #include <copyinout.h>
 #include <mips/trapframe.h>
 #include <synch.h>
+#include <kern/limits.h>
 #include "opt-A2.h"
 
   /* this implementation of sys__exit does not do anything with the exit code */
@@ -20,7 +21,79 @@
 int sys_execv(const char * program, char ** args) {
     (void) program;
     (void) args;
-    return 0;
+
+    // Count the number of arguments and copy them into the kernel
+    int arg_len = 0;
+    size_t arg_total_len = 0;
+    for (; args[count] != NULL; count++) {
+        arg_total_len += strlen(args[count]) + 1;
+    }
+
+    // Copy the program path from user space into the kernel
+    size_t progname_size = strlen((char *) program) + 1;
+    char * progname = kmalloc(PATH_MAX);
+    int copy_err = copyinstr(program, progname, PATH_MAX, &progname_size);
+    // if copying did not succeed, return it
+    if (copy_err) return copy_err;
+
+    // Copy from runprogram
+	struct addrspace *as;
+	struct vnode *v;
+	vaddr_t entrypoint, stackptr;
+	int result;
+
+	/* Open the file. */
+	result = vfs_open(progname, O_RDONLY, 0, &v);
+	if (result) {
+		return result;
+	}
+
+	/* We should be a new process. */
+	KASSERT(curproc_getas() == NULL);
+
+	/* Create a new address space. */
+	as = as_create();
+	if (as ==NULL) {
+		vfs_close(v);
+		return ENOMEM;
+	}
+
+	/* Switch to it and activate it. */
+	curproc_setas(as);
+	as_activate();
+
+	/* Load the executable. */
+	result = load_elf(v, &entrypoint);
+	if (result) {
+		/* p_addrspace will go away when curproc is destroyed */
+		vfs_close(v);
+		return result;
+	}
+
+	/* Done with the file now. */
+	vfs_close(v);
+
+	/* Define the user stack in the address space */
+	result = as_define_stack(as, &stackptr);
+	if (result) {
+		/* p_addrspace will go away when curproc is destroyed */
+		return result;
+	}
+
+    // Copy the arguments from the user space into the new address space
+
+
+    // Delete the old address space
+
+
+    // Call enter_new_process with the address, stack pointer, and program entry point
+	/* Warp to user mode. */
+	enter_new_process(0 /*argc*/, NULL /*userspace addr of argv*/,
+			  stackptr, entrypoint);
+
+	/* enter_new_process does not return. */
+	panic("enter_new_process returned\n");
+	return EINVAL;
 }
 
 int sys_fork(struct trapframe * tf, pid_t * retval) {
