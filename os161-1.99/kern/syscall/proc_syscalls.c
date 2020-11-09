@@ -18,7 +18,9 @@
 
 #if OPT_A2
 int sys_execv(const char * program, char ** args) {
-
+    (void) program;
+    (void) args;
+    return 0;
 }
 
 int sys_fork(struct trapframe * tf, pid_t * retval) {
