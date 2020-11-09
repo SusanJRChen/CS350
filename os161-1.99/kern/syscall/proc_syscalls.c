@@ -92,7 +92,7 @@ int sys_execv(const char * program, char ** args) {
     stackptr -= sizeof(vaddr_t) * (kernal_arg_len + 1);
     char ** addresses = (char **) stackptr;
     for (int i = 0; i < kernal_arg_len; i++) {
-        size_t cur_arg_len = ROUNDUP((strlen(kernal_args[i]) + 1), 4);
+        size_t cur_arg_len = strlen(kernal_args[i]) + 1;
         stackptr -= cur_arg_len;
 
         // Push on the args onto the stack
