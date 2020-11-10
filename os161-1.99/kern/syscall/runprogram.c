@@ -42,8 +42,10 @@
 #include <addrspace.h>
 #include <vm.h>
 #include <vfs.h>
+#include <copyinout.h>
 #include <syscall.h>
 #include <test.h>
+#include <vm.h>
 #include "opt-A2.h"
 
 /*
