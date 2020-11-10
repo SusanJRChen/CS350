@@ -65,7 +65,7 @@ runprogram(char *progname, int kernal_arg_len, char ** kernal_args)
 	int result;
 
 	/* Open the file. */
-	result = vfs_open(kernal_program, O_RDONLY, 0, &v);
+	result = vfs_open(progname, O_RDONLY, 0, &v);
 	if (result) {
 		return result;
 	}
