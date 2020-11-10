@@ -90,6 +90,7 @@ int sys_execv(const char * program, char ** args) {
 
     // Copy the strings into stack and get the addresses
     stackptr -= sizeof(vaddr_t) * (kernal_arg_len + 1);
+    // we do this so we don't have to malloc an array for the addresses
     char ** addresses = (char **) stackptr;
     for (int i = 0; i < kernal_arg_len; i++) {
         size_t cur_arg_len = strlen(kernal_args[i]) + 1;

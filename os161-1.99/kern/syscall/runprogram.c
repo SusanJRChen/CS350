@@ -52,6 +52,84 @@
  *
  * Calls vfs_open on progname and thus may destroy it.
  */
+
+#if OPT_A2
+int
+runprogram(char *progname, int kernal_arg_len, char ** kernal_args)
+{
+	struct addrspace *old_as, *as;
+	struct vnode *v;
+	vaddr_t entrypoint, stackptr;
+	int result;
+
+	/* Open the file. */
+	result = vfs_open(kernal_program, O_RDONLY, 0, &v);
+	if (result) {
+		return result;
+	}
+
+	/* We should be a new process. */
+	// KASSERT(curproc_getas() == NULL);
+
+	/* Create a new address space. */
+	as = as_create();
+	if (as ==NULL) {
+		vfs_close(v);
+		return ENOMEM;
+	}
+
+	/* Switch to it and activate it. */
+    old_as = curproc_setas(as);
+	as_activate();
+
+	/* Load the executable. */
+	result = load_elf(v, &entrypoint);
+	if (result) {
+		/* p_addrspace will go away when curproc is destroyed */
+		vfs_close(v);
+		return result;
+	}
+
+	/* Done with the file now. */
+	vfs_close(v);
+
+	/* Define the user stack in the address space */
+	result = as_define_stack(as, &stackptr);
+	if (result) {
+		/* p_addrspace will go away when curproc is destroyed */
+		return result;
+	}
+
+    // Copy the arguments from the user space into the new address space
+
+    // Copy the strings into stack and get the addresses
+    stackptr -= sizeof(vaddr_t) * (kernal_arg_len + 1);
+    // we do this so we don't have to malloc an array for the addresses
+    char ** addresses = (char **) stackptr;
+    for (int i = 0; i < kernal_arg_len; i++) {
+        size_t cur_arg_len = strlen(kernal_args[i]) + 1;
+        stackptr -= cur_arg_len;
+
+        // Push on the args onto the stack
+        copyout((void *) kernal_args[i], (userptr_t) stackptr, cur_arg_len);
+
+        // Keep track of the argument
+        addresses[i] = (char *) stackptr;
+    }
+    // Put a NULL terminate array of pointers to the strings
+    addresses[kernal_arg_len] = NULL;
+
+    // Delete the old address space
+    as_destroy(old_as);
+
+    // Call enter_new_process with the address, stack pointer, and program entry point
+	enter_new_process(kernal_arg_len, (userptr_t) addresses, stackptr, entrypoint);
+
+	/* enter_new_process does not return. */
+	panic("enter_new_process returned\n");
+	return EINVAL;
+}
+#else
 int
 runprogram(char *progname)
 {
@@ -106,4 +184,5 @@ runprogram(char *progname)
 	panic("enter_new_process returned\n");
 	return EINVAL;
 }
+#endif
 
