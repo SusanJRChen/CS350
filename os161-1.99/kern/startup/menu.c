@@ -93,9 +93,12 @@ cmd_progthread(void *ptr, unsigned long nargs)
 
 	KASSERT(nargs >= 1);
 
+    #if OPT_A2
+    #else
 	if (nargs > 2) {
 		kprintf("Warning: argument passing from menu not supported\n");
 	}
+    #endif
 
 	/* Hope we fit. */
 	KASSERT(strlen(args[0]) < sizeof(progname));
