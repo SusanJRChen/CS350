@@ -40,6 +40,8 @@
 #include <mainbus.h>
 #include <syscall.h>
 
+#include "opt-A3.h"
+
 
 /* in exception.S */
 extern void asm_usermode(struct trapframe *tf);
@@ -108,13 +110,66 @@ kill_curthread(vaddr_t epc, unsigned code, vaddr_t vaddr)
 		break;
 	}
 
-	/*
-	 * You will probably want to change this.
-	 */
+    # if OPT_A3
+    // Kill the current process
+    int exitcode = sig;
+    struct addrspace *as;
+    struct proc *p = curproc;
+    /* for now, just include this to keep the compiler from complaining about
+      an unused variable */
 
+    DEBUG(DB_SYSCALL,"Syscall: _exit(%d)\n",exitcode);
+
+    KASSERT(curproc->p_addrspace != NULL);
+    as_deactivate();
+    /*
+    * clear p_addrspace before calling as_destroy. Otherwise if
+    * as_destroy sleeps (which is quite possible) when we
+    * come back we'll be calling as_activate on a
+    * half-destroyed address space. This tends to be
+    * messily fatal.
+    */
+    as = curproc_setas(NULL);
+    as_destroy(as);
+
+    /* detach this thread from its process */
+    /* note: curproc cannot be used after this call */
+    proc_remthread(curthread);
+
+    // set curproc to exited
+    p->p_has_exited_began = true;
+    p->p_exit_code = _MKWAIT_EXIT(exitcode);
+
+    // find the curproc in the parent proc and set exit code
+    if (p->p_parent != NULL) {
+      struct proc * parent = p->p_parent;
+      lock_acquire(parent->p_children_lk);
+      for (unsigned int i = 0; i < array_num(parent->p_children); i++) {
+        struct proc *cur = array_get(parent->p_children, i);
+        if (!cur->p_has_exited_end && cur->p_pid == p->p_pid) {
+          cur->p_has_exited_end = true;
+          break;
+        }
+      }
+      lock_release(parent->p_children_lk);
+      // if a parent is waiting on child to exit, wake them up
+      cv_signal(p->p_cv, p->p_children_lk);
+    }
+    // destroy this proc if it has no parent, this will recursively delete any exited children
+    else {
+      /* if this is the last user process in the system, proc_destroy()
+        will wake up the kernel menu thread */
+      proc_destroy(p);
+    }
+
+    thread_exit();
+    /* thread_exit() does not return, so we should never get here */
+    panic("return from thread_exit in sys_exit\n");
+    #else
 	kprintf("Fatal user mode trap %u sig %d (%s, epc 0x%x, vaddr 0x%x)\n",
 		code, sig, trapcodenames[code], epc, vaddr);
 	panic("I don't know how to handle this\n");
+    #endif
 }
 
 /*
@@ -217,7 +272,7 @@ mips_trap(struct trapframe *tf)
 		KASSERT(curthread->t_curspl == 0);
 		KASSERT(curthread->t_iplhigh_count == 0);
 
-		DEBUG(DB_SYSCALL, "syscall: #%d, args %x %x %x %x\n", 
+		DEBUG(DB_SYSCALL, "syscall: #%d, args %x %x %x %x\n",
 		      tf->tf_v0, tf->tf_a0, tf->tf_a1, tf->tf_a2, tf->tf_a3);
 
 		syscall(tf);
@@ -248,11 +303,11 @@ mips_trap(struct trapframe *tf)
 	case EX_IBE:
 	case EX_DBE:
 		/*
-		 * This means you loaded invalid TLB entries, or 
-		 * touched invalid parts of the direct-mapped 
+		 * This means you loaded invalid TLB entries, or
+		 * touched invalid parts of the direct-mapped
 		 * segments. These are serious kernel errors, so
 		 * panic.
-		 * 
+		 *
 		 * The MIPS won't even tell you what invalid address
 		 * caused the bus error.
 		 */
@@ -282,8 +337,8 @@ mips_trap(struct trapframe *tf)
 	 * set by copyin/copyout and related functions to signify that
 	 * the addresses they're accessing are userlevel-supplied and
 	 * not trustable. What we actually want to do is resume
-	 * execution at the function pointed to by badfaultfunc. That's 
-	 * going to be "copyfail" (see copyinout.c), which longjmps 
+	 * execution at the function pointed to by badfaultfunc. That's
+	 * going to be "copyfail" (see copyinout.c), which longjmps
 	 * back to copyin/copyout or wherever and returns EFAULT.
 	 *
 	 * Note that we do not just *call* this function, because that
@@ -308,7 +363,7 @@ mips_trap(struct trapframe *tf)
 
 	kprintf("panic: Fatal exception %u (%s) in kernel mode\n", code,
 		trapcodenames[code]);
-	kprintf("panic: EPC 0x%x, exception vaddr 0x%x\n", 
+	kprintf("panic: EPC 0x%x, exception vaddr 0x%x\n",
 		tf->tf_epc, tf->tf_vaddr);
 
 	panic("I can't handle this... I think I'll just die now...\n");

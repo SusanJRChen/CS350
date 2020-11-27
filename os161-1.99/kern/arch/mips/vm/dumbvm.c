@@ -38,6 +38,8 @@
 #include <addrspace.h>
 #include <vm.h>
 
+#include "opt-A3.h"
+
 /*
  * Dumb MIPS-only "VM system" that is intended to only be just barely
  * enough to struggle off the ground.
@@ -66,13 +68,13 @@ getppages(unsigned long npages)
 	spinlock_acquire(&stealmem_lock);
 
 	addr = ram_stealmem(npages);
-	
+
 	spinlock_release(&stealmem_lock);
 	return addr;
 }
 
 /* Allocate/free some kernel-space virtual pages */
-vaddr_t 
+vaddr_t
 alloc_kpages(int npages)
 {
 	paddr_t pa;
@@ -83,7 +85,7 @@ alloc_kpages(int npages)
 	return PADDR_TO_KVADDR(pa);
 }
 
-void 
+void
 free_kpages(vaddr_t addr)
 {
 	/* nothing - leak the memory. */
@@ -193,16 +195,37 @@ vm_fault(int faulttype, vaddr_t faultaddress)
 			continue;
 		}
 		ehi = faultaddress;
-		elo = paddr | TLBLO_DIRTY | TLBLO_VALID;
+        elo = paddr | TLBLO_DIRTY | TLBLO_VALID;
+        #if OPT_A3
+        // Text segment should be read-only
+        if (as->load_complete) {
+            elo &= ~TLBLO_DIRTY;
+        }
+        #else
+        #endif
 		DEBUG(DB_VM, "dumbvm: 0x%x -> 0x%x\n", faultaddress, paddr);
 		tlb_write(ehi, elo, i);
 		splx(spl);
 		return 0;
 	}
 
+    #if OPT_A3
+    // If the TLB is full, call tlb_random to write the entry into a random TLB slot
+    ehi = faultaddress;
+    elo = paddr | TLBLO_DIRTY | TLBLO_VALID;
+    // Text segment should be read-only
+    // load TLB entries with TLBLO_DIRTY on until load_elf has complete
+    if (as->load_complete) {
+        elo &= ~TLBLO_DIRTY;
+    }
+    tlb_random(ehi, elo);
+    splx(spl);
+    return 0;
+    #else
 	kprintf("dumbvm: Ran out of TLB entries - cannot handle page fault\n");
 	splx(spl);
 	return EFAULT;
+    #endif
 }
 
 struct addrspace *
@@ -220,6 +243,10 @@ as_create(void)
 	as->as_pbase2 = 0;
 	as->as_npages2 = 0;
 	as->as_stackpbase = 0;
+    #if OPT_A3
+    as->load_complete = false;
+    #else
+    #endif
 
 	return as;
 }
@@ -264,7 +291,7 @@ int
 as_define_region(struct addrspace *as, vaddr_t vaddr, size_t sz,
 		 int readable, int writeable, int executable)
 {
-	size_t npages; 
+	size_t npages;
 
 	/* Align the region. First, the base... */
 	sz += vaddr & ~(vaddr_t)PAGE_FRAME;
@@ -327,7 +354,7 @@ as_prepare_load(struct addrspace *as)
 	if (as->as_stackpbase == 0) {
 		return ENOMEM;
 	}
-	
+
 	as_zero_region(as->as_pbase1, as->as_npages1);
 	as_zero_region(as->as_pbase2, as->as_npages2);
 	as_zero_region(as->as_stackpbase, DUMBVM_STACKPAGES);
@@ -387,7 +414,7 @@ as_copy(struct addrspace *old, struct addrspace **ret)
 	memmove((void *)PADDR_TO_KVADDR(new->as_stackpbase),
 		(const void *)PADDR_TO_KVADDR(old->as_stackpbase),
 		DUMBVM_STACKPAGES*PAGE_SIZE);
-	
+
 	*ret = new;
 	return 0;
 }
